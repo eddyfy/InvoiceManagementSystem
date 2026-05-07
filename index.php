@@ -33,6 +33,12 @@ $router->post(Config::get('baseProjectFolder') . '/signup', action(AuthControlle
 
 $router->get(Config::get('baseProjectFolder') . '/logout', action(AuthController::class, 'logout'));
 
+$router->post(Config::get('baseProjectFolder') . '/profile/update', action(UserController::class, 'updateProfile'));
+
+$router->post(Config::get('baseProjectFolder') . '/profile/change-password', action(UserController::class, 'changePassword'));
+
+$router->delete(Config::get('baseProjectFolder') . '/profile/delete', action(UserController::class, 'deleteAccount'));
+
 
 $router->dispatch($path);
 

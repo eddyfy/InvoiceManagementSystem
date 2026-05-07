@@ -1,8 +1,8 @@
 <?php 
 declare(strict_types=1);
-require_once './Config.php'; // Include the configuration file to load environment variables
-require_once './utils.php';
-require_once './DBH.php'; // Include the database connection handler
+// require_once './Config.php'; // Include the configuration file to load environment variables
+// require_once './utils.php';
+// require_once './DBH.php'; // Include the database connection handler
 require_once './autoloader.php';
 
 class AuthController{
@@ -15,7 +15,7 @@ class AuthController{
         if(isset($_POST['csrf_token'], $_SESSION['csrf_token']) && hash_equals($_SESSION['csrf_token'], $_POST['csrf_token'])){ // Check if the CSRF token from the form matches the one stored in the session
             unset($_SESSION['csrf_token']); // Unset the CSRF token from the session to prevent reuse
             $email = strtolower(trim($_POST['email'] ?? ''));
-            $password = trim($_POST['password'] ?? '');
+            $password = $_POST['password'] ?? '';
 
             //validation for email
             if (empty($email)) {
@@ -58,10 +58,16 @@ class AuthController{
                     session_regenerate_id(true);
                     $_SESSION['user'] = [
                         'id' => $user->id,
-                        'name' => $user->name,
+                        'firstname' => $user->firstname,
+                        'lastname' => $user->lastname,
                         'email' => $user->email
                     ];
-                    $_SESSION['message'] = "Login successful! Welcome back, {$user->name}."; // Store a success message in the session to display it on the invoice form page
+                    $_SESSION['message'] = "Login successful! Welcome back, {$user->firstname}."; // Store a success message in the session to display it on the invoice form page
+                    if(isset($_SESSION['previous_page']) && $_SESSION['previous_page'] === "invoice_form"){
+                        unset($_SESSION['previous_page']);
+                        header('Location: ' . Config::get('baseProjectFolder') . '/invoice'); // Redirect to the invoice form if login is successful
+                        exit();
+                    }
                     header('Location: ' . Config::get('baseProjectFolder') . '/dashboard'); // Redirect to the invoice form if login is successful
                     exit();
                 }
@@ -77,35 +83,48 @@ class AuthController{
     }
 
     public function logout(): void {
+        $_SESSION = [];
         session_destroy(); // Destroy the session to log the user out
-        header('Location: ' . Config::get('baseProjectFolder') . '/dashboard'); // Redirect to the home page after logging out
+        session_start();
+        $_SESSION['message'] = 'You have been logged out.'; // store a logout message in the session  to display on the home page when user logs out
+        header('Location: ' . Config::get('baseProjectFolder') . '/'); // Redirect to the home page after logging out
         exit();
     }
     public function showSignupForm(): void {
    
         require './views/signup_form.php'; // Include the signup form view to display it to the user
     }
-    public function handleSignup(): void {
+    public function handleSignup(): void { 
        
         $errors = [];
         // Validate input
         if(isset($_POST['csrf_token'], $_SESSION['csrf_token']) && hash_equals($_SESSION['csrf_token'], $_POST['csrf_token'])){ // Check if the CSRF token from the form matches the one stored in the session
             unset($_SESSION['csrf_token']); // Unset the CSRF token from the session to prevent reuse
-            $name = sanitizeInput(trim($_POST['name'] ?? ''));
+            $firstname = sanitizeInput(trim($_POST['firstname'] ?? ''));
+            $lastname = sanitizeInput(trim($_POST['lastname'] ?? ''));
             $email = strtolower(trim($_POST['email'] ?? ''));
-            $password = trim($_POST['password'] ?? '');
-            $confirm_password = trim($_POST['confirm_password'] ?? '');
+            $password = $_POST['password'] ?? '';
+            $confirm_password = $_POST['confirm_password'] ?? '';
 
-             //validation for name
-             if (empty($name)) {
-                $errors["name"][] = "Name is required.";
+             //validation for firstname
+             if (empty($firstname)) {
+                $errors["firstname"][] = "First name is required.";
             }else{
-                if (isLongerThan($name, 100)) {
-                    $errors["name"][] = "Name must be less than 100 characters.";
+                if (isLongerThan($firstname, 100)) {
+                    $errors["firstname"][] = "First name must be less than 100 characters.";
                 }
             }
 
-             //validationfor email
+             //validation for lastname
+             if (empty($lastname)) {
+                $errors["lastname"][] = "Last name is required.";
+            }else{
+                if (isLongerThan($lastname, 100)) {
+                    $errors["lastname"][] = "Last name must be less than 100 characters.";
+                }
+            }
+
+             //validation for email
              if (empty($email)) {
                 $errors["email"][] = "Email is required.";
             }else{ 
@@ -116,7 +135,8 @@ class AuthController{
                     $errors["email"][] = "Invalid email format.";
                 }   
             }
-    
+                
+            
              //validation for password  
             if(empty($password)){
                 $errors["password"][] = "Password is required.";
@@ -135,7 +155,7 @@ class AuthController{
 
             if(!empty($errors)){//if there are validation errors, store them in the session and redirect back to the signup form
                 $_SESSION['errors'] = $errors; // Store the errors in the session to display them on the form
-                $_SESSION['old'] = ['name' => $name, 'email' => $email ]; // Store the old input values in the session to repopulate the form
+                $_SESSION['old'] = ['firstname' => $firstname, 'lastname' => $lastname, 'email' => $email ]; // Store the old input values in the session to repopulate the form
                 header('Location: ' . Config::get('baseProjectFolder') . '/signup'); // Redirect back to the signup form if there are validation errors
                 exit();
             }else{//no errors
@@ -143,7 +163,8 @@ class AuthController{
                 $userModel = new User();
                 try{
                      $user = $userModel->create([
-                        'name' => $name,
+                        'firstname' => $firstname,
+                        'lastname' => $lastname,
                         'email' => $email,
                         'password' => password_hash($password, PASSWORD_DEFAULT)
                     ]);
@@ -151,7 +172,7 @@ class AuthController{
                 }catch (RuntimeException $e) {
                     if ($e->getMessage() === 'duplicate') {
                         $_SESSION['errors'] = ['email' => ['Email already exists. Please use a different email.']]; // Store the error message in the session to display it on the form 
-                        $_SESSION['old'] = ['name' => $name, 'email' => $email];
+                        $_SESSION['old'] = ['firstname' => $firstname, 'lastname' => $lastname, 'email' => $email];
                         header('Location: ' . Config::get('baseProjectFolder') . '/signup');
                         exit();
                     }
@@ -167,5 +188,4 @@ class AuthController{
             exit();
         }
     }
-
 }

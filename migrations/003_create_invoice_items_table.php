@@ -7,7 +7,7 @@ $stmt = "CREATE TABLE IF NOT EXISTS invoice_items (
 
     invoice_id INT NOT NULL,
 
-    description VARCHAR(255),
+    description VARCHAR(255) NOT NULL,
     quantity INT NOT NULL,
     price DECIMAL(10,2) NOT NULL,
 

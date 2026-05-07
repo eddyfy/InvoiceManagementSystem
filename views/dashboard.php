@@ -1,4 +1,22 @@
 <?php
+require_once "./autoloader.php";
+require_once "./utils.php";
+requireAuth(); // Ensure the user is authenticated before accessing the dashboard
+        $userId = $_SESSION['user']['id'];
+        $invoiceModel = new Invoice();
+
+        $stats = $invoiceModel->getStats($userId);
+        $recentInvoices = $invoiceModel->getRecentByUser($userId, 3);
+        $allInvoices = $invoiceModel->getAllByUser($userId);
+
+        $_SESSION['csrf_token'] = password_hash(bin2hex(random_bytes(32)), PASSWORD_DEFAULT);
+        $errors = [];
+        $old =[];
+        if(isset($_SESSION['errors'])){
+            $old = $_SESSION['old'] ?? [];
+            $errors = $_SESSION['errors'];
+            unset($_SESSION['errors'], $_SESSION['old']);
+        }
 
 ?>
 <!DOCTYPE html>
@@ -27,7 +45,19 @@
   --topnav-h:56px;
 }
 body{font-family:var(--font-sans);background:var(--color-bg);color:var(--color-text-primary);min-height:100vh;display:flex;flex-direction:column;}
+.field-error {
+    color: #ef4444;
+    font-size: 12px;
+    margin-top: 4px;
+    display: block;
+}
 
+input.error, textarea.error {
+    border-color: #ef4444;
+}
+input.error:focus, textarea.error:focus {
+    box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.2);
+}
 /* ── TOP NAV ── */
 .topnav{
   height:var(--topnav-h);background:var(--color-surface);border-bottom:1px solid var(--color-border);
@@ -104,9 +134,10 @@ body{font-family:var(--font-sans);background:var(--color-bg);color:var(--color-t
 .toolbar-left{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
 .toolbar-right{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
 .search-wrap{position:relative;}
-.search-wrap input{padding:8px 12px 8px 34px;border:1px solid var(--color-border);border-radius:var(--radius-md);font-size:13px;font-family:var(--font-sans);background:var(--color-bg);color:var(--color-text-primary);width:200px;transition:border-color 0.15s,box-shadow 0.15s;}
-.search-wrap input:focus{outline:none;border-color:var(--color-blue);box-shadow:0 0 0 3px var(--color-blue-soft);}
+.search-wrap input[type=text]{padding:8px 12px 8px 34px;border:1px solid var(--color-border);border-radius:var(--radius-md);font-size:13px;font-family:var(--font-sans);background:var(--color-bg);color:var(--color-text-primary);width:200px;transition:border-color 0.15s,box-shadow 0.15s;}
+.search-wrap input[type=text]:focus{outline:none;border-color:var(--color-blue);box-shadow:0 0 0 3px var(--color-blue-soft);}
 .search-icon{position:absolute;left:10px;top:50%;transform:translateY(-50%);width:14px;height:14px;stroke:var(--color-text-secondary);fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;pointer-events:none;}
+
 
 /* ── BUTTONS ── */
 .btn-primary{background:var(--color-accent);border:none;border-radius:var(--radius-md);padding:9px 16px;font-size:13.5px;font-family:var(--font-sans);cursor:pointer;color:white;font-weight:500;transition:background 0.15s;white-space:nowrap;}
@@ -159,6 +190,9 @@ input:focus,select.styled:focus{outline:none;border-color:var(--color-blue);box-
 .danger-desc{font-size:13px;color:#64748b;margin-bottom:12px;line-height:1.6;}
 .btn-danger{background:#dc2626;border:none;border-radius:var(--radius-md);padding:9px 18px;font-size:13.5px;font-family:var(--font-sans);cursor:pointer;color:white;font-weight:500;transition:background 0.15s;}
 .btn-danger:hover{background:#b91c1c;}
+.updateInfo {
+  margin-bottom: 1.25rem;
+}
 
 /* ── TOAST ── */
 .toast{display:none;position:fixed;bottom:20px;right:20px;left:20px;background:var(--color-accent);color:white;padding:12px 18px;border-radius:var(--radius-md);font-size:13.5px;box-shadow:0 10px 15px -3px rgba(0,0,0,0.15);z-index:999;font-family:var(--font-sans);text-align:center;}
@@ -232,6 +266,7 @@ input:focus,select.styled:focus{outline:none;border-color:var(--color-blue);box-
 <body>
 
 <!-- TOP NAV -->
+
 <nav class="topnav">
   <div class="brand">
     <button class="hamburger" id="hamburger-btn" onclick="toggleSidebar()" aria-label="Menu">
@@ -243,8 +278,8 @@ input:focus,select.styled:focus{outline:none;border-color:var(--color-blue);box-
     <span class="brand-name">InvoiceManager</span>
   </div>
   <div class="nav-right">
-    <span class="nav-username"><?php echo $_SESSION['user']['name'] ?? 'User'; ?></span>
-    <div class="avatar" onclick="showSection('profile')">OK</div>
+    <span class="nav-username"><?php echo $_SESSION['user']['firstname'] ?? 'User'; ?> <?php echo $_SESSION['user']['lastname'] ?? 'Username'; ?></span>
+    <div class="avatar" onclick="showSection('profile')"><?php echo substr($_SESSION['user']['firstname'], 0, 1); ?><?php echo substr($_SESSION['user']['lastname'], 0, 1); ?></div>
   </div>
 </nav>
 
@@ -277,13 +312,12 @@ input:focus,select.styled:focus{outline:none;border-color:var(--color-blue);box-
     <!-- DASHBOARD -->
     <div class="section active" id="section-dashboard">
       <div class="page-header">
-        <div class="page-title">Good morning, Olaoluwakitan 👋</div>
-        <div class="page-sub">Here's an overview of your invoicing activity.</div>
+      <div class="page-title" id="greeting">Good morning, <?php echo htmlspecialchars($_SESSION['user']['firstname']); ?> 👋</div>        <div class="page-sub">Here's an overview of your invoicing activity.</div>
       </div>
       <div class="stats">
-        <div class="stat-card"><div class="stat-label">Total Invoices</div><div class="stat-value">12</div><div class="stat-sub">All time</div></div>
-        <div class="stat-card"><div class="stat-label">Revenue</div><div class="stat-value">₦487,500</div><div class="stat-sub">Paid invoices</div></div>
-        <div class="stat-card"><div class="stat-label">Outstanding</div><div class="stat-value">₦62,000</div><div class="stat-sub">3 unpaid</div></div>
+        <div class="stat-card"><div class="stat-label">Total Invoices</div><div class="stat-value"><?php echo $stats['total_invoices']; ?></div><div class="stat-sub">All time</div></div>
+        <div class="stat-card"><div class="stat-label">Revenue</div><div class="stat-value">₦<?php echo $stats['revenue']? number_format($stats['revenue'], 2) : '0.00'; ?></div><div class="stat-sub">Paid invoices</div></div>
+        <div class="stat-card"><div class="stat-label">Outstanding</div><div class="stat-value">₦<?php echo $stats['outstanding']? number_format($stats['outstanding'], 2) : '0.00'; ?></div><div class="stat-sub"><?php echo $stats['unpaid_count']; ?> unpaid</div></div>
       </div>
       <div class="card">
         <p class="section-title">Recent Invoices</p>
@@ -291,9 +325,36 @@ input:focus,select.styled:focus{outline:none;border-color:var(--color-blue);box-
           <table>
             <thead><tr><th>Invoice #</th><th>Customer</th><th class="col-date">Date</th><th>Amount</th><th>Status</th><th></th></tr></thead>
             <tbody>
-              <tr><td><strong>INV-012</strong></td><td>Emeka Okafor</td><td class="col-date" style="color:var(--color-text-secondary)">Apr 20, 2026</td><td>₦45,000</td><td><span class="badge badge-pending">Pending</span></td><td><div class="action-btns"><button class="icon-btn"><svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button></div></td></tr>
-              <tr><td><strong>INV-011</strong></td><td>Adaeze Nwosu</td><td class="col-date" style="color:var(--color-text-secondary)">Apr 15, 2026</td><td>₦120,000</td><td><span class="badge badge-paid">Paid</span></td><td><div class="action-btns"><button class="icon-btn"><svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button></div></td></tr>
-              <tr><td><strong>INV-010</strong></td><td>Babatunde Alabi</td><td class="col-date" style="color:var(--color-text-secondary)">Apr 8, 2026</td><td>₦17,000</td><td><span class="badge badge-overdue">Overdue</span></td><td><div class="action-btns"><button class="icon-btn"><svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button></div></td></tr>
+              <?php if (empty($recentInvoices)): ?>
+                <tr><td colspan="6" style="text-align:center;color:var(--color-text-secondary);padding:20px;">No recent invoices found.</td></tr>   
+              <?php else: ?>
+
+                  <?php foreach($recentInvoices as $invoice): ?>
+                  <tr>
+                    <td><strong><?php echo htmlspecialchars($invoice['invoice_number']); ?></strong></td>
+                    <td><?php echo htmlspecialchars($invoice['customer_name']); ?></td>
+                    <td class="col-date" style="color:var(--color-text-secondary)"><?php echo date('M d, Y', strtotime($invoice['invoice_date'])); ?></td>
+                    <td>₦<?php echo number_format($invoice['grand_total'], 2); ?></td>
+                    <td>
+                      <?php 
+                        $statusClass = '';
+                        if ($invoice['status'] === 'paid') $statusClass = 'badge-paid';
+                        elseif ($invoice['status'] === 'pending') $statusClass = 'badge-pending';
+                        elseif ($invoice['status'] === 'overdue') $statusClass = 'badge-overdue';
+                      ?>
+                      <span class="badge <?php echo $statusClass; ?>"><?php echo ucfirst($invoice['status']); ?></span>
+                    </td>
+                    <td>
+                      <div class="action-btns">
+                        <button class="icon-btn" onclick="showToast('Viewing invoice <?php echo htmlspecialchars($invoice['invoice_number']); ?>'); window.location.href='<?php echo Config::get('baseProjectFolder'); ?>/invoice/view/<?php echo $invoice['invoice_number']; ?>'">
+                          <svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                <?php endforeach; ?>
+              <?php endif; ?>
+
             </tbody>
           </table>
         </div>
@@ -346,40 +407,51 @@ input:focus,select.styled:focus{outline:none;border-color:var(--color-blue);box-
       </div>
       <div class="card">
         <div class="profile-header">
-          <div class="avatar-lg" id="avatar-initials">OK</div>
+          <div class="avatar-lg" id="avatar-initials"><?php echo substr($_SESSION['user']['firstname'], 0, 1); ?><?php echo substr($_SESSION['user']['lastname'], 0, 1); ?></div>
           <div class="profile-meta">
-            <h2 id="display-name">Oretade Olaoluwakitan</h2>
-            <p id="display-email">olaoluwakitan@example.com</p>
+            <h2 id="display-name"><?php echo $_SESSION['user']['firstname'] ?: 'User'; ?> <?php echo $_SESSION['user']['lastname'] ?: 'Username'; ?></h2>
+            <p id="display-email"><?php echo $_SESSION['user']['email'] ?: 'user@example.com'; ?></p>
           </div>
         </div>
         <p class="section-title">Personal Information</p>
-        <div class="form-grid">
-          <div class="field"><label>First name</label><input type="text" id="fname" value="Oretade"/></div>
-          <div class="field"><label>Last name</label><input type="text" id="lname" value="Olaoluwakitan"/></div>
-          <div class="field full"><label>Email address</label><input type="email" id="email" value="olaoluwakitan@example.com"/></div>
-          <div class="field full"><label>Phone number</label><input type="tel" id="phone" value="0284413444"/></div>
-          <div class="field full"><label>Business / Bank name</label><input type="text" id="bank" value="WEMA BANK"/></div>
+        
+        <form  action="<?php echo Config::get('baseProjectFolder'); ?>/profile/update" method="POST" id="profile-form" class="updateInfo card">
+            <div class="form-grid" >
+
+              <div class="field <?php echo isset($errors['firstname']) ? 'error' : ''; ?>"><label>First name</label><input type="text" name="firstname" id="fname" value="<?php echo old($old, 'firstname', htmlspecialchars($_SESSION['user']['firstname'])); ?>"/> <?php echo fieldError($errors, 'firstname'); ?> </div>
+             
+              <div class="field <?php echo isset($errors['lastname']) ? 'error' : ''; ?>"><label>Last name</label><input type="text" name="lastname" id="lname" value="<?php echo old($old, 'lastname', htmlspecialchars($_SESSION['user']['lastname'])); ?>"/><?php echo fieldError($errors, 'lastname'); ?></div>
+              
+              <div class="field <?php echo isset($errors['email']) ? 'error' : ''; ?>"><label>Email address</label><input type="email" name="email" id="email" value="<?php echo old($old, 'email', htmlspecialchars($_SESSION['user']['email'])); ?>"/> <?php echo fieldError($errors, 'email'); ?></div>
+             
+              <input type="hidden" name="csrf_token" id="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>"/>
+
+              <!-- <div class="field full"><label>Phone number</label><input type="tel" id="phone" value="0284413444"/></div> -->
+              <!-- <div class="field full"><label>Business / Bank name</label><input type="text" id="bank" value="WEMA BANK"/></div> -->
+            </div>
+            <div class="form-actions">
+              <button type="reset" class="btn-outline" onclick="showToast('Changes discarded.')">Cancel</button>
+              <button type="submit" class="btn-primary">Save changes</button>
+            </div>
+        </form>
+   
+      <form action="<?php echo Config::get('baseProjectFolder'); ?>/profile/change-password" method="POST" class="card">
+          <p class="section-title">Change Password</p>
+          <div class="form-grid">
+            <div class="field full <?php echo isset($errors['current_password']) ? 'error' : ''; ?>"><label>Current password</label><input type="password" name="current_password" id="pw-current" placeholder="••••••••"/><?php echo fieldError($errors, 'current_password'); ?> </div>
+            <div class="field <?php echo isset($errors['new_password']) ? 'error' : ''; ?>"><label>New password</label><input type="password" name="new_password" id="pw-new" placeholder="••••••••"/><?php echo fieldError($errors, 'new_password'); ?> </div>
+            <div class="field <?php echo isset($errors['confirm_password']) ? 'error' : ''; ?>"><label>Confirm new password</label><input type="password" name="confirm_password" id="pw-confirm" placeholder="••••••••"/><?php echo fieldError($errors, 'confirm_password'); ?> </div>
+            <input type="hidden" name="csrf_token" id="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>"/>
+          </div>
+          <div class="form-actions"><button class="btn-primary" type="submit" >Update password</button></div>
         </div>
-        <div class="form-actions">
-          <button class="btn-outline" onclick="showToast('Changes discarded.')">Cancel</button>
-          <button class="btn-primary" onclick="saveProfile()">Save changes</button>
+      </form>
+        <div class="danger-zone">
+          <div class="danger-title">Danger Zone</div>
+          <div class="danger-desc">Permanently delete your account and all associated invoices. This action cannot be undone.</div>
+          <button class="btn-danger" onclick="openDeleteAccount()">Delete my account</button>
         </div>
-      </div>
-      <div class="card">
-        <p class="section-title">Change Password</p>
-        <div class="form-grid">
-          <div class="field full"><label>Current password</label><input type="password" id="pw-current" placeholder="••••••••"/></div>
-          <div class="field"><label>New password</label><input type="password" id="pw-new" placeholder="••••••••"/></div>
-          <div class="field"><label>Confirm new password</label><input type="password" id="pw-confirm" placeholder="••••••••"/></div>
-        </div>
-        <div class="form-actions"><button class="btn-primary" onclick="changePassword()">Update password</button></div>
-      </div>
-      <div class="danger-zone">
-        <div class="danger-title">Danger Zone</div>
-        <div class="danger-desc">Permanently delete your account and all associated invoices. This action cannot be undone.</div>
-        <button class="btn-danger" onclick="openDeleteAccount()">Delete my account</button>
-      </div>
-    </div>
+     
 
   </main>
 </div>
@@ -415,24 +487,48 @@ input:focus,select.styled:focus{outline:none;border-color:var(--color-blue);box-
   <div class="modal-actions"><button class="btn-outline" onclick="closeModal('delete-invoice-modal')">Cancel</button><button class="btn-danger" onclick="confirmDeleteInvoice()">Delete</button></div></div>
 </div>
 <div class="modal-backdrop" id="delete-account-modal">
-  <div class="modal"><h3>Delete account?</h3><p>All your data and invoices will be permanently deleted. Are you absolutely sure?</p>
-  <div class="modal-actions"><button class="btn-outline" onclick="closeModal('delete-account-modal')">Cancel</button><button class="btn-danger">Yes, delete everything</button></div></div>
+  <div class="modal">
+    <h3>Delete account?</h3>
+    <p>All your data and invoices will be permanently deleted. Are you absolutely sure?</p>
+    <div class="modal-actions">
+      <button class="btn-outline" onclick="closeModal('delete-account-modal')">Cancel</button>
+      <form action="<?php echo Config::get('baseProjectFolder'); ?>/profile/delete" method="POST">
+        <input type="hidden" name="_method" value="DELETE">
+        <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
+        <button class="btn-danger" type="submit">Yes, delete everything</button>
+      </form>
+    </div>
+  </div>
 </div>
 
 
 <div class="toast" id="toast"></div>
 
 <script>
-const invoices=[
-  {id:'INV-012',customer:'Emeka Okafor',email:'emeka@example.com',date:'Apr 20, 2026',amount:'₦45,000',status:'Pending'},
-  {id:'INV-011',customer:'Adaeze Nwosu',email:'adaeze@example.com',date:'Apr 15, 2026',amount:'₦120,000',status:'Paid'},
-  {id:'INV-010',customer:'Babatunde Alabi',email:'babatunde@example.com',date:'Apr 8, 2026',amount:'₦17,000',status:'Overdue'},
-  {id:'INV-009',customer:'Chisom Eze',email:'chisom@example.com',date:'Mar 30, 2026',amount:'₦89,500',status:'Paid'},
-  {id:'INV-008',customer:'Funke Adeleke',email:'funke@example.com',date:'Mar 22, 2026',amount:'₦33,000',status:'Paid'},
-  {id:'INV-007',customer:'Gbenga Oladipo',email:'gbenga@example.com',date:'Mar 14, 2026',amount:'₦22,000',status:'Pending'},
-  {id:'INV-006',customer:'Halima Bello',email:'halima@example.com',date:'Mar 5, 2026',amount:'₦57,000',status:'Paid'},
-  {id:'INV-005',customer:'Ifeanyi Obi',email:'ifeanyi@example.com',date:'Feb 20, 2026',amount:'₦11,500',status:'Overdue'},
-];
+  const firstName = "<?php echo htmlspecialchars($_SESSION['user']['firstname']); ?>";
+  const lastName = "<?php echo htmlspecialchars($_SESSION['user']['lastname']); ?>";
+  const hour = new Date().getHours();
+  let greeting;
+
+  if (hour < 12) {
+    greeting = 'Good morning';
+  } else if (hour < 17) {
+    greeting = 'Good afternoon';
+  } else {
+    greeting = 'Good evening';
+  }
+
+  document.getElementById('greeting').textContent = `${greeting}, ${firstName} 👋`;
+const invoices = <?php echo json_encode(array_map(function($invoice) {
+    return [
+        'invoice_number' => $invoice['invoice_number'],
+        'customer_name' => $invoice['customer_name'],
+        'customer_email' => $invoice['customer_email'],
+        'invoice_date' => date('M d, Y', strtotime($invoice['invoice_date'])),
+        'grand_total' => '₦' . number_format($invoice['grand_total'], 2),
+        'status' => ucfirst($invoice['status'])
+    ];
+}, $allInvoices)); ?>;
 let deleteTarget=null;
 
 // ── SIDEBAR ──
@@ -468,16 +564,16 @@ function renderInvoices(data){
   empty.style.display='none';
   tbody.innerHTML=data.map(inv=>`
     <tr>
-      <td><strong>${inv.id}</strong></td>
-      <td>${inv.customer}</td>
-      <td class="col-email" style="color:var(--color-text-secondary)">${inv.email}</td>
-      <td class="col-date" style="color:var(--color-text-secondary)">${inv.date}</td>
-      <td style="font-weight:500">${inv.amount}</td>
+      <td><strong>${inv.invoice_number}</strong></td>
+      <td>${inv.customer_name}</td>
+      <td class="col-email" style="color:var(--color-text-secondary)">${inv.customer_email}</td>
+      <td class="col-date" style="color:var(--color-text-secondary)">${inv.invoice_date}</td>
+      <td style="font-weight:500">${inv.grand_total}</td>
       <td><span class="badge ${badgeClass(inv.status)}">${inv.status}</span></td>
       <td><div class="action-btns">
         <button class="icon-btn" title="View"><svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
         <button class="icon-btn" title="Edit"><svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
-        <button class="icon-btn danger" title="Delete" onclick="openDeleteInvoice('${inv.id}')"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg></button>
+        <button class="icon-btn danger" title="Delete" onclick="openDeleteInvoice('${inv.invoice_number}')"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg></button>
       </div></td>
     </tr>`).join('');
 }
@@ -485,7 +581,7 @@ function filterInvoices(){
   const q=document.getElementById('search-input').value.toLowerCase();
   const s=document.getElementById('status-filter').value;
   renderInvoices(invoices.filter(inv=>{
-    const mq=inv.id.toLowerCase().includes(q)||inv.customer.toLowerCase().includes(q)||inv.email.toLowerCase().includes(q);
+    const mq=inv.invoice_number.toLowerCase().includes(q)||inv.customer_name.toLowerCase().includes(q)||inv.customer_email.toLowerCase().includes(q);
     return mq&&(!s||inv.status===s);
   }));
 }
@@ -518,7 +614,7 @@ function openDeleteAccount(){document.getElementById('delete-account-modal').cla
 function closeModal(id){document.getElementById(id).classList.remove('open');}
 function doLogout(){closeModal('logout-modal');showToast('Logged out. Redirecting…');}
 function confirmDeleteInvoice(){
-  const i=invoices.findIndex(x=>x.id===deleteTarget);
+  const i=invoices.findIndex(x=>x.invoice_number===deleteTarget);
   if(i>-1) invoices.splice(i,1);
   renderInvoices(invoices);
   closeModal('delete-invoice-modal');
@@ -535,11 +631,28 @@ function showToast(msg){
   t.textContent=msg;t.style.display='block';
   setTimeout(()=>t.style.display='none',2500);
 }
+async function deleteAccount() {
+  console.log("Deleting account...");
+  const response = await fetch('<?php echo Config::get('baseProjectFolder'); ?>/profile/delete', {
+    method: 'DELETE',
+  });
+
+  if (response.ok) {
+    window.location.href = '<?php echo Config::get('baseProjectFolder'); ?>/login';
+  } else {
+    alert('Something went wrong. Please try again.');
+  }
+}
 </script>
 <?php if(isset($_SESSION['message'])): ?>
   <script>showToast("<?php echo $_SESSION['message']; ?>");</script>
   <?php unset($_SESSION['message']); ?>
 <?php endif; ?>
 
+<?php if(!empty($errors)): ?>
+  <script>
+    showSection('profile');
+  </script>
+<?php endif; ?>
 </body>
 </html>

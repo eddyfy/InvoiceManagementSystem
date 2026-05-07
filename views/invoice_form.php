@@ -1,10 +1,45 @@
 <?php 
 declare(strict_types=1);
+require_once "./autoloader.php";
+require_once "./utils.php";
 // ini_set('display_errors', 1);
 // error_reporting(E_ALL);
 // var_dump($config);
 // $config = new Config(); // Create a new instance of the Config class to access configuration settings
 $_SESSION['csrf_token'] = password_hash(bin2hex(random_bytes(32)), PASSWORD_DEFAULT);
+// Get the next invoice number for the logged in user
+$nextInvoiceNumber = 'INV-001'; // fallback default
+
+if (isset($_SESSION['user'])) {
+    $userId = $_SESSION['user']['id'];
+    $stmt = DBH::getConnection()->prepare("SELECT COUNT(*) FROM invoices WHERE user_id = ?");
+    $stmt->execute([$userId]);
+    $count = $stmt->fetchColumn();
+    $nextInvoiceNumber = 'INV-' . sprintf('%03d', $count + 1);
+}
+
+$errors = $_SESSION['errors'] ?? [];
+$old = $_SESSION['old'] ?? [];
+unset($_SESSION['errors'], $_SESSION['old']);
+
+// // Helper to get old input value with fallback
+// function old(array $old, string $key, string $fallback = ''): string {
+//     return htmlspecialchars($old[$key] ?? $fallback);
+// }
+
+// // Helper to display field error
+// function fieldError(array $errors, string $key, ?int $index = null, ?string $subKey = null): string {
+//     if ($index !== null && $subKey !== null) {
+//         $message = $errors[$key][$index][$subKey][0] ?? null;
+//     } else {
+//         $message = $errors[$key][0] ?? null;
+//     }
+
+//     if ($message) {
+//         return '<span class="field-error">' . htmlspecialchars($message) . '</span>';
+//     }
+//     return '';
+// }
 
 ?>
 <!DOCTYPE html>
@@ -32,18 +67,49 @@ $_SESSION['csrf_token'] = password_hash(bin2hex(random_bytes(32)), PASSWORD_DEFA
     <br>
   
     <div class="grid3" style="margin-bottom:12px">
-      <div><label>Invoice #</label><input type="text" id="inv-num" name="invoice_number" value="INV-001" /></div>
-      <div><label>Date</label><input type="date" id="inv-date" name="invoice_date" /></div>
+       <div>
+          <label>Invoice #</label>
+            <input type="text" id="inv-num" name="invoice_number" 
+              value="<?php echo old($old, 'invoice_number', $nextInvoiceNumber); ?>"
+              class="<?php echo isset($errors['invoice_number']) ? 'error' : ''; ?>" />
+              <?php echo fieldError($errors, 'invoice_number'); ?>
+        </div>
+        <div>
+          <label>Date</label>
+          <input type="date" id="inv-date" name="invoice_date"
+            value="<?php echo old($old, 'invoice_date'); ?>"
+            class="<?php echo isset($errors['invoice_date']) ? 'error' : ''; ?>" />
+            <?php echo fieldError($errors, 'invoice_date'); ?>
+      </div>
       <!-- <div><label>Due date</label><input type="date" id="due-date" /></div> -->
     </div>
     <div class="grid2">
-      <div><label>Customer name</label><input type="text" id="cust-name" name="customer_name" placeholder="e.g. John Doe" required /></div>
-      <div><label>Email</label><input type="email" id="cust-contact" name="customer_email" placeholder="e.g. john.doe@example.com" required /></div>
+      <div>
+        <label>Customer name</label>
+        <input type="text" id="cust-name" name="customer_name"
+          value="<?php echo old($old, 'customer_name'); ?>"
+          placeholder="e.g. John Doe"
+          class="<?php echo isset($errors['customer_name']) ? 'error' : ''; ?>" />
+          <?php echo fieldError($errors, 'customer_name'); ?>
+      </div>
+      <div>
+        <label>Email</label>
+        <input type="email" id="cust-contact" name="customer_email"
+          value="<?php echo old($old, 'customer_email'); ?>"
+          placeholder="e.g. john.doe@example.com"
+          class="<?php echo isset($errors['customer_email']) ? 'error' : ''; ?>" />
+          <?php echo fieldError($errors, 'customer_email'); ?>
+      </div>
     </div>
   </div>
   
   <div class="card">
     <p class="section-title">Items</p>
+    <?php if (!empty($errors['items_general'])): ?>
+      <div class="field-error" style="margin-bottom: 10px;">
+        <?php echo fieldError($errors, 'items_general'); ?>
+      </div>
+    <?php endif; ?>
     <table id="items-table">
       <thead>
         <tr>
@@ -61,28 +127,34 @@ $_SESSION['csrf_token'] = password_hash(bin2hex(random_bytes(32)), PASSWORD_DEFA
     <div class="totals">
       <div class="total-row"><span>Subtotal</span><span id="subtotal">₦0.00</span></div>
       <div class="total-row">
-        <span>Tax <input type="number" id="tax-rate" name="tax-rate" value="0" min="0" max="100" style="width:44px;border:0.5px solid var(--color-border-tertiary);border-radius:4px;padding:2px 4px;font-size:12px;background:var(--color-background-primary);color:var(--color-text-primary);" oninput="recalc()"> %</span>
+        <span>Tax <input type="number" id="tax-rate" name="tax_rate"  value="<?php echo old($old, 'tax_rate', '0'); ?>" min="0" max="100" style="width:44px;border:0.5px solid var(--color-border-tertiary);border-radius:4px;padding:2px 4px;font-size:12px;background:var(--color-background-primary);color:var(--color-text-primary);" oninput="recalc()"> %</span>
         <span id="tax-amt">₦0.00</span>
       </div>
       <div class="total-row">
-        <span>Discount <input type="number" id="discount" name="discount" value="0" min="0" style="width:60px;border:0.5px solid var(--color-border-tertiary);border-radius:4px;padding:2px 4px;font-size:12px;background:var(--color-background-primary);color:var(--color-text-primary);" oninput="recalc()"> ₦</span>
+        <span>Discount <input type="number" id="discount" name="discount" value="<?php echo old($old, 'discount', '0'); ?>" min="0" style="width:60px;border:0.5px solid var(--color-border-tertiary);border-radius:4px;padding:2px 4px;font-size:12px;background:var(--color-background-primary);color:var(--color-text-primary);" oninput="recalc()"> ₦</span>
         <span id="discount-amt">₦0.00</span>
       </div>
       <div class="total-row grand"><span>Total</span><span id="grand-total">₦0.00</span></div>
+  
     </div>
   </div>
 
   <div class="card">
     <p class="section-title">Notes</p>
-    <textarea id="notes" name="notes" rows="2" style="width:100%;border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);padding:8px;font-size:13px;font-family:var(--font-sans);background:var(--color-background-primary);color:var(--color-text-primary);" placeholder="e.g. Thank you for your purchase!"></textarea>
+    <textarea id="notes" name="notes" rows="2" style="width:100%;border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);padding:8px;font-size:13px;font-family:var(--font-sans);background:var(--color-background-primary);color:var(--color-text-primary);" placeholder="e.g. Thank you for your purchase!"><?php echo old($old, 'notes'); ?></textarea>
   </div>
   <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>" />
+  <input type="hidden" name="user_id" value="<?php echo $_SESSION['user']['id'] ?? ''; ?>" />
+  <input type="hidden" name="subtotal" id="h-subtotal" value="0">
+  <input type="hidden" name="tax_amount" id="h-tax-amt" value="0">
+  <input type="hidden" name="grand_total" id="h-grand-total" value="0">
   <div class="actions">
-    <button class="btn-outline" onclick="window.print()">Print / export PDF</button>
+    <button type="button" class="btn-outline" onclick="window.print()">Print / export PDF</button>
     <?php if (isset($_SESSION['user'])): ?>
       <button class="btn-primary" type="submit">Save invoice</button>
     <?php else: ?>
       <button class="btn-primary" type="submit">Log in to save invoice</button>
+      <?php $_SESSION['previous_page'] = "invoice_form"; ?>
     <?php endif; ?>
     
 
@@ -90,23 +162,47 @@ $_SESSION['csrf_token'] = password_hash(bin2hex(random_bytes(32)), PASSWORD_DEFA
 
 </form>
 <?php if(isset($_SESSION['user'])): ?>
-    <a href="<?php echo Config::get('baseProjectFolder'); ?>/logout">Logout</a>
+    <a class="logout" href="<?php echo Config::get('baseProjectFolder'); ?>/logout">Logout</a>
 <?php endif; ?>
 <div class="toast" id="toast"></div>
 
 <script>
+  document.getElementById('discount').addEventListener('blur', function() {
+    if (this.value === '') this.value = 0;
+});
+
+document.getElementById('tax-rate').addEventListener('blur', function() {
+    if (this.value === '') this.value = 0;
+});
+
 let rowId = 0;
 
-function addRow(name='', price='', qty=1) {
+function addRow(name='', price='', qty=1, errors={}) {
   const id = rowId++;
   const tr = document.createElement('tr');
   tr.id = 'row-' + id;
-  tr.innerHTML = `
-    <td><input type="text" name="items[${id}][description]" value="${name}" placeholder="Item name" oninput="recalc()" style="width:100%" /></td>
-    <td><input type="number" name="items[${id}][price]" value="${price}" placeholder="0.00" min="0" step="0.1" oninput="recalc()" style="width:100%" /></td>
-    <td><input type="number" name="items[${id}][quantity]" value="${qty}" min="1" step="1" oninput="recalc()" style="width:100%" /></td>
+  // tr.innerHTML = `
+  //   <td><input type="text" name="items[${id}][description]" value="${name}" placeholder="Item name" oninput="recalc()" style="width:100%" /></td>
+  //   <td><input type="number" name="items[${id}][price]" value="${price}" placeholder="0.00" min="0" step="0.1" oninput="recalc()" style="width:100%" /></td>
+  //   <td><input type="number" name="items[${id}][quantity]" value="${qty}" min="1" step="1" oninput="recalc()" style="width:100%" /></td>
+  //   <td id="sub-${id}" style="font-weight:500">₦0.00</td>
+  //   <td><button class="remove-btn" onclick="removeRow(${id})">×</button></td>
+  // `;
+    tr.innerHTML = `
+    <td>
+      <input type="text" name="items[${id}][description]" value="${name}" placeholder="Item name" oninput="recalc()" style="width:100%" />
+      ${errors.description ? `<span class="field-error">${errors.description[0]}</span>` : ''}
+    </td>
+    <td>
+      <input type="number" name="items[${id}][price]" value="${price}" placeholder="0.00" min="0" step="0.1" oninput="recalc()" style="width:100%" />
+      ${errors.price ? `<span class="field-error">${errors.price[0]}</span>` : ''}
+    </td>
+    <td>
+      <input type="number" name="items[${id}][quantity]" value="${qty}" min="1" step="1" oninput="recalc()" style="width:100%" />
+      ${errors.quantity ? `<span class="field-error">${errors.quantity[0]}</span>` : ''}
+    </td>
     <td id="sub-${id}" style="font-weight:500">₦0.00</td>
-    <td><button class="remove-btn" onclick="removeRow(${id})">×</button></td>
+    <td><button class="remove-btn" type="button" onclick="removeRow(${id})">×</button></td>
   `;
   document.getElementById('items-body').appendChild(tr);
   recalc();
@@ -118,9 +214,11 @@ function removeRow(id) {
   recalc();
 }
 
+
 function fmt(n) {
   return '₦' + n.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
 }
+
 
 function recalc() {
   const rows = document.querySelectorAll('#items-body tr');
@@ -142,6 +240,11 @@ function recalc() {
   document.getElementById('tax-amt').textContent = fmt(taxAmt);
   document.getElementById('discount-amt').textContent = '-' + fmt(discount);
   document.getElementById('grand-total').textContent = fmt(grand);
+
+  document.getElementById('h-subtotal').value = subtotal.toFixed(2);
+  document.getElementById('h-tax-amt').value = taxAmt.toFixed(2);
+
+  document.getElementById('h-grand-total').value = grand.toFixed(2);
 }
 
 function showToast(msg) {
@@ -184,11 +287,24 @@ function showToast(msg) {
 // }
 
 const today = new Date().toISOString().split('T')[0];
-document.getElementById('inv-date').value = today;
-const due = new Date(); due.setDate(due.getDate() + 7);
-document.getElementById('due-date').value = due.toISOString().split('T')[0];
+<?php if (empty($old['invoice_date'])): ?>
+  document.getElementById('inv-date').value = new Date().toISOString().split('T')[0];
+<?php endif; ?>
+// const due = new Date(); due.setDate(due.getDate() + 7);
+// document.getElementById('due-date').value = due.toISOString().split('T')[0];
 
-addRow('', '', 1);
+  <?php if (!empty($old['items'])): ?>
+  
+    const oldItems = <?php echo json_encode(array_values($old['items'])); ?>;
+    // oldItems.forEach(item => addRow(item.description, item.price, item.quantity));
+    const itemErrors = <?php echo json_encode($errors['items'] ?? []); ?>;
+    oldItems.forEach((item, index) => addRow(item.description, item.price, item.quantity, itemErrors[index] ?? {}));
+    recalc();
+
+  <?php else: ?>
+    // addRow('', '', 1);
+  <?php endif; ?>
+
 </script>
 <?php if (isset($_SESSION['message'])): ?>
   <script>

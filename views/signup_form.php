@@ -260,13 +260,27 @@ unset($_SESSION['errors'], $_SESSION['old']); // Clear errors and old input afte
     <form action="signup" method="POST" id="signupForm">
 
       <!-- Full Name -->
-      <div class="field <?php echo isset($errors['name']) ? 'has-error' : ''; ?>" id="field-name">
-        <label for="name">Full Name (Firstname first)</label>
-        <input type="text" id="name" name="name" placeholder="John Doe" value="<?php echo $old['name'] ?? ''; ?>"   />
-        <!-- <div class="error-msg">Full name is required.</div> -->
+      <div class="field <?php echo isset($errors['firstname']) ? 'has-error' : ''; ?>" id="field-name">
+        <label for="firstname">First Name</label>
+        <input type="text" id="firstname" name="firstname" placeholder="John" value="<?php echo $old['firstname'] ?? ''; ?>"   />
+        <!-- <div class="error-msg">First name is required.</div> -->
          <?php
-            if (isset($errors['name'])) {
-                foreach ($errors['name'] as $error) {
+            if (isset($errors['firstname'])) {
+                foreach ($errors['firstname'] as $error) {
+                    echo '<div class="error-msg">' . htmlspecialchars($error) . '</div>';
+                }
+            }
+        ?>
+      </div>
+
+      <!-- Last Name -->
+      <div class="field <?php echo isset($errors['lastname']) ? 'has-error' : ''; ?>" id="field-lastname">
+        <label for="lastname">Last Name</label>
+        <input type="text" id="lastname" name="lastname" placeholder="Doe" value="<?php echo $old['lastname'] ?? ''; ?>"   />
+        <!-- <div class="error-msg">Last name is required.</div> -->
+         <?php
+            if (isset($errors['lastname'])) {
+                foreach ($errors['lastname'] as $error) {
                     echo '<div class="error-msg">' . htmlspecialchars($error) . '</div>';
                 }
             }

@@ -2,7 +2,7 @@
 require_once './DBH.php'; // Include the database connection handler to enable database interactions
 abstract class Model{
     // public $id;
-    protected PDO $pdo;
+    public PDO $pdo;
     protected string $tableName;
     public function __construct(){
         $this->pdo = DBH::getConnection(); // Store the PDO connection from the database handler for use in database operations
@@ -25,7 +25,7 @@ abstract class Model{
         }
     
         $id = (int) $this->pdo->lastInsertId();
-        $data['id'] = $id; // Add the generated ID to the data array for object creation
+        $data['id'] = $id; 
         
         return $this->hydrate($data); // Use the hydrate method to create and return an object with the data    
 

@@ -7,6 +7,7 @@ class HomeController{
     }
     public function dashboard(): void{
         requireAuth();
+       
         require './views/dashboard.php';
     }
 }

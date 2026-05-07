@@ -29,6 +29,11 @@ class Router{
     public function dispatch(string $path):void { //function to run the callback function associated with the given path called from index.php
         $method = $_SERVER['REQUEST_METHOD']; //get the HTTP method of the request
 
+         // Check for method override
+        if ($method === 'POST' && isset($_POST['_method'])) {
+            $method = strtoupper($_POST['_method']);
+        }
+        
           // Check if the path exists under the current method
         if (isset($this->routes[$method][$path])) {
             $handler = $this->routes[$method][$path];

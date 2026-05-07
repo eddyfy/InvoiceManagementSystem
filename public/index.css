@@ -118,6 +118,18 @@ input:focus, select:focus, textarea:focus {
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
 }
 
+/* Field Errors */
+.field-error {
+    color: #ef4444;
+    font-size: 12px;
+    margin-top: 4px;
+    display: block;
+}
+
+input.error, textarea.error {
+    border-color: #ef4444;
+}
+
 /* Table Styling */
 table { 
   width: 100%; 
@@ -258,7 +270,7 @@ td input:focus {
 
 /* Print Optimization */
 @media print {
-  .actions, .add-btn, .remove-btn, .toast { display: none !important; }
+  .actions, .add-btn, .remove-btn, .toast, .logout { display: none !important; }
   body { background: white; }
   .card { box-shadow: none; border: 1px solid #ccc; }
   .payment-details { background: white; border: 1px dashed #666; }

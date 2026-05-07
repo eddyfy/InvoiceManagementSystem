@@ -1,11 +1,11 @@
 <?php
-class InvoiceItem{
+class InvoiceItem extends Model{
     protected string $tableName = 'invoice_items';
-    public $id;
-    public $invoice_id;
-    public $description;
-    public $quantity;
-    public $price;
-    public $subtotal;   
+    public int $id;
+    public int $invoice_id;
+    public string $description;
+    public int $quantity;
+    public float $price;
+    public float $subtotal;   
 
 }

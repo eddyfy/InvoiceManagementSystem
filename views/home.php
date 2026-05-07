@@ -1,5 +1,10 @@
 <?php
 declare(strict_types=1);
+$logoutMessage = '';
+if (isset($_SESSION['message'])) {
+    $logoutMessage = $_SESSION['message'];
+    unset($_SESSION['message']);
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -41,7 +46,7 @@ body{
 .nav{
   background:var(--color-surface);
   border-bottom:1px solid var(--color-border);
-  padding:0 2rem;
+  padding:0 2.5rem;
   height:56px;
   display:flex;
   align-items:center;
@@ -263,8 +268,8 @@ body{
     <span class="brand-name">InvoiceManager</span>
   </a>
   <div class="nav-links">
-    <a class="nav-link" href="#">Sign up</a>
-    <a class="nav-link primary" href="#">Log in</a>
+    <a class="nav-link" href="<?php echo Config::get('baseProjectFolder'); ?>/signup">Sign up</a>
+    <a class="nav-link primary" href="<?php echo Config::get('baseProjectFolder');?>/login">Log in</a>
   </div>
 </nav>
 
@@ -351,6 +356,33 @@ body{
 <footer class="footer">
   &copy; 2026 InvoiceManager &nbsp;·&nbsp; Built by Oretade Olaoluwakitan
 </footer>
+<div id="toast" style="
+  display:none;
+  position:fixed;
+  bottom:24px;
+  right:24px;
+  background:#1e2937;
+  color:white;
+  padding:12px 20px;
+  border-radius:var(--radius-md);
+  font-size:14px;
+  box-shadow:0 10px 15px -3px rgba(0,0,0,0.1);
+  z-index:999;
+  font-family:var(--font-sans);
+"></div>
+<script>
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.style.display = 'block';
+    setTimeout(() => t.style.display = 'none', 2500);
+  }
 
+  <?php if ($logoutMessage): ?>
+    showToast("<?php echo htmlspecialchars($logoutMessage); ?>");
+    console.log("<?php echo htmlspecialchars($logoutMessage); ?>");
+  <?php endif; ?>
+
+</script>
 </body>
 </html>

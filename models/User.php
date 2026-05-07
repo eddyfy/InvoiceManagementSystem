@@ -5,12 +5,13 @@ class User extends Model{
 
     protected string $tableName = 'users';
 
-    public  $id;
-    public $name;
-    public $email;
-    public $password;
-    public $created_at;
-    public $updated_at;
+    public int $id;
+    public string $firstname;
+    public string $lastname;
+    public string $email;
+    public string $password;
+    public string $created_at;
+    public string $updated_at;
 
     function findByEmail(string $email): ?object {
         $sql = "SELECT * FROM {$this->tableName} WHERE email = :email";
@@ -24,6 +25,5 @@ class User extends Model{
         }
     }
 
-    
     
 }

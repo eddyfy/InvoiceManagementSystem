@@ -2,21 +2,12 @@
 require_once "./autoloader.php";
 require_once "./utils.php";
 requireAuth(); // Ensure the user is authenticated before accessing the dashboard
-        $userId = $_SESSION['user']['id'];
-        $invoiceModel = new Invoice();
 
-        $stats = $invoiceModel->getStats($userId);
-        $recentInvoices = $invoiceModel->getRecentByUser($userId, 3);
-        $allInvoices = $invoiceModel->getAllByUser($userId);
-
-        $_SESSION['csrf_token'] = password_hash(bin2hex(random_bytes(32)), PASSWORD_DEFAULT);
-        $errors = [];
-        $old =[];
-        if(isset($_SESSION['errors'])){
-            $old = $_SESSION['old'] ?? [];
-            $errors = $_SESSION['errors'];
-            unset($_SESSION['errors'], $_SESSION['old']);
-        }
+/** @var array $stats */
+/** @var array $recentInvoices */
+/** @var array $allInvoices */
+/** @var array $errors */
+/** @var array $old */
 
 ?>
 <!DOCTYPE html>
@@ -159,7 +150,7 @@ tbody tr:hover{background:#f8fafc;}
 
 .badge{display:inline-flex;align-items:center;padding:3px 9px;border-radius:99px;font-size:11.5px;font-weight:600;letter-spacing:0.2px;}
 .badge-paid{background:#dcfce7;color:#16a34a;}
-.badge-pending{background:#fef9c3;color:#ca8a04;}
+.badge-sent{background:#fef9c3;color:#ca8a04;}
 .badge-overdue{background:#fee2e2;color:#dc2626;}
 
 .action-btns{display:flex;gap:6px;}
@@ -339,14 +330,14 @@ input:focus,select.styled:focus{outline:none;border-color:var(--color-blue);box-
                       <?php 
                         $statusClass = '';
                         if ($invoice['status'] === 'paid') $statusClass = 'badge-paid';
-                        elseif ($invoice['status'] === 'pending') $statusClass = 'badge-pending';
+                        elseif ($invoice['status'] === 'sent') $statusClass = 'badge-sent';
                         elseif ($invoice['status'] === 'overdue') $statusClass = 'badge-overdue';
                       ?>
                       <span class="badge <?php echo $statusClass; ?>"><?php echo ucfirst($invoice['status']); ?></span>
                     </td>
                     <td>
                       <div class="action-btns">
-                        <button class="icon-btn" onclick="showToast('Viewing invoice <?php echo htmlspecialchars($invoice['invoice_number']); ?>'); window.location.href='<?php echo Config::get('baseProjectFolder'); ?>/invoice/view/<?php echo $invoice['invoice_number']; ?>'">
+                        <button class="icon-btn" onclick="showToast('Viewing invoice <?php echo htmlspecialchars($invoice['invoice_number']); ?>'); window.location.href='<?php echo Config::get('baseProjectFolder'); ?>/invoice/view/<?php echo $invoice['id']; ?>'">
                           <svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
                         </button>
                       </div>
@@ -379,8 +370,9 @@ input:focus,select.styled:focus{outline:none;border-color:var(--color-blue);box-
           <div class="toolbar-right">
             <select class="styled" id="status-filter" onchange="filterInvoices()" style="padding:8px 12px;border:1px solid var(--color-border);border-radius:var(--radius-md);font-size:13px;font-family:var(--font-sans);background:var(--color-bg);color:var(--color-text-primary);">
               <option value="">All statuses</option>
+              <option value="Draft">Drafts</option>
               <option value="Paid">Paid</option>
-              <option value="Pending">Pending</option>
+              <option value="Sent">Sent</option>
               <option value="Overdue">Overdue</option>
             </select>
             <button class="btn-primary" onclick="showToast('Navigating to invoice form…'); window.location.href='<?php echo Config::get('baseProjectFolder'); ?>/invoice'">+ New Invoice</button>
@@ -424,7 +416,7 @@ input:focus,select.styled:focus{outline:none;border-color:var(--color-blue);box-
               
               <div class="field <?php echo isset($errors['email']) ? 'error' : ''; ?>"><label>Email address</label><input type="email" name="email" id="email" value="<?php echo old($old, 'email', htmlspecialchars($_SESSION['user']['email'])); ?>"/> <?php echo fieldError($errors, 'email'); ?></div>
              
-              <input type="hidden" name="csrf_token" id="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>"/>
+              <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>"/>
 
               <!-- <div class="field full"><label>Phone number</label><input type="tel" id="phone" value="0284413444"/></div> -->
               <!-- <div class="field full"><label>Business / Bank name</label><input type="text" id="bank" value="WEMA BANK"/></div> -->
@@ -441,7 +433,7 @@ input:focus,select.styled:focus{outline:none;border-color:var(--color-blue);box-
             <div class="field full <?php echo isset($errors['current_password']) ? 'error' : ''; ?>"><label>Current password</label><input type="password" name="current_password" id="pw-current" placeholder="••••••••"/><?php echo fieldError($errors, 'current_password'); ?> </div>
             <div class="field <?php echo isset($errors['new_password']) ? 'error' : ''; ?>"><label>New password</label><input type="password" name="new_password" id="pw-new" placeholder="••••••••"/><?php echo fieldError($errors, 'new_password'); ?> </div>
             <div class="field <?php echo isset($errors['confirm_password']) ? 'error' : ''; ?>"><label>Confirm new password</label><input type="password" name="confirm_password" id="pw-confirm" placeholder="••••••••"/><?php echo fieldError($errors, 'confirm_password'); ?> </div>
-            <input type="hidden" name="csrf_token" id="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>"/>
+            <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>"/>
           </div>
           <div class="form-actions"><button class="btn-primary" type="submit" >Update password</button></div>
         </div>
@@ -484,7 +476,14 @@ input:focus,select.styled:focus{outline:none;border-color:var(--color-blue);box-
 </div>
 <div class="modal-backdrop" id="delete-invoice-modal">
   <div class="modal"><h3>Delete invoice?</h3><p>This will permanently remove the invoice. This cannot be undone.</p>
-  <div class="modal-actions"><button class="btn-outline" onclick="closeModal('delete-invoice-modal')">Cancel</button><button class="btn-danger" onclick="confirmDeleteInvoice()">Delete</button></div></div>
+  <div class="modal-actions">
+    <button class="btn-outline" onclick="closeModal('delete-invoice-modal')">Cancel</button>
+    <form id="delete-invoice-form" action="" method="POST">
+      <input type="hidden" name="_method" value="DELETE">
+      <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
+      <button class="btn-danger" type="submit">Delete</button>
+    </form>
+  </div></div>
 </div>
 <div class="modal-backdrop" id="delete-account-modal">
   <div class="modal">
@@ -505,6 +504,7 @@ input:focus,select.styled:focus{outline:none;border-color:var(--color-blue);box-
 <div class="toast" id="toast"></div>
 
 <script>
+  const baseUrl = '<?php echo Config::get('baseProjectFolder'); ?>'; 
   const firstName = "<?php echo htmlspecialchars($_SESSION['user']['firstname']); ?>";
   const lastName = "<?php echo htmlspecialchars($_SESSION['user']['lastname']); ?>";
   const hour = new Date().getHours();
@@ -521,6 +521,7 @@ input:focus,select.styled:focus{outline:none;border-color:var(--color-blue);box-
   document.getElementById('greeting').textContent = `${greeting}, ${firstName} 👋`;
 const invoices = <?php echo json_encode(array_map(function($invoice) {
     return [
+        'id' => $invoice['id'],
         'invoice_number' => $invoice['invoice_number'],
         'customer_name' => $invoice['customer_name'],
         'customer_email' => $invoice['customer_email'],
@@ -556,7 +557,30 @@ function showSection(name){
 }
 
 // ── INVOICES ──
-function badgeClass(s){return s==='Paid'?'badge-paid':s==='Pending'?'badge-pending':'badge-overdue';}
+function badgeClass(s){return s==='Paid'?'badge-paid':s==='Sent'?'badge-sent':'badge-overdue';}
+// function renderInvoices(data){
+//   const tbody=document.getElementById('invoice-tbody');
+//   const empty=document.getElementById('invoice-empty');
+//   if(!data.length){tbody.innerHTML='';empty.style.display='block';return;}
+//   empty.style.display='none';
+//   tbody.innerHTML=data.map(inv=>`
+//     <tr>
+//       <td><strong>${inv.invoice_number}</strong></td>
+//       <td>${inv.customer_name}</td>
+//       <td class="col-email" style="color:var(--color-text-secondary)">${inv.customer_email}</td>
+//       <td class="col-date" style="color:var(--color-text-secondary)">${inv.invoice_date}</td>
+//       <td style="font-weight:500">${inv.grand_total}</td>
+//       <td><span class="badge ${badgeClass(inv.status)}">${inv.status}</span></td>
+//       <td><div class="action-btns">
+//         <button class="icon-btn" title="View" onclick="window.location.href='<?php echo Config::get('baseProjectFolder'); ?>/invoice/view/${inv.id}'">
+//           <svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+//         </button>
+//         <button class="icon-btn" title="Edit"><svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
+//         <button class="icon-btn danger" title="Delete" onclick="openDeleteInvoice('${inv.id}')"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+//       </div></td>
+//     </tr>
+//   `).join('');
+// }
 function renderInvoices(data){
   const tbody=document.getElementById('invoice-tbody');
   const empty=document.getElementById('invoice-empty');
@@ -571,11 +595,18 @@ function renderInvoices(data){
       <td style="font-weight:500">${inv.grand_total}</td>
       <td><span class="badge ${badgeClass(inv.status)}">${inv.status}</span></td>
       <td><div class="action-btns">
-        <button class="icon-btn" title="View"><svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
-        <button class="icon-btn" title="Edit"><svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
-        <button class="icon-btn danger" title="Delete" onclick="openDeleteInvoice('${inv.invoice_number}')"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg></button>
+        <button class="icon-btn" title="View" onclick="window.location.href='${baseUrl}/invoice/view/${inv.id}'">
+          <svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+        </button>
+        <button class="icon-btn" title="Edit" onclick="window.location.href='${baseUrl}/invoice/edit/${inv.id}'">
+          <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+        </button>
+        <button class="icon-btn danger" title="Delete" onclick="openDeleteInvoice(${inv.id})">
+          <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
       </div></td>
-    </tr>`).join('');
+    </tr>
+  `).join('');
 }
 function filterInvoices(){
   const q=document.getElementById('search-input').value.toLowerCase();
@@ -609,18 +640,22 @@ function changePassword(){
 
 // ── MODALS ──
 function openLogout(){document.getElementById('logout-modal').classList.add('open');}
-function openDeleteInvoice(id){deleteTarget=id;document.getElementById('delete-invoice-modal').classList.add('open');}
+function openDeleteInvoice(id) {
+  deleteTarget = id;
+  document.getElementById('delete-invoice-form').action = '<?php echo Config::get('baseProjectFolder'); ?>/invoice/delete/' + id;
+  document.getElementById('delete-invoice-modal').classList.add('open');
+}
 function openDeleteAccount(){document.getElementById('delete-account-modal').classList.add('open');}
 function closeModal(id){document.getElementById(id).classList.remove('open');}
 function doLogout(){closeModal('logout-modal');showToast('Logged out. Redirecting…');}
-function confirmDeleteInvoice(){
-  const i=invoices.findIndex(x=>x.invoice_number===deleteTarget);
-  if(i>-1) invoices.splice(i,1);
-  renderInvoices(invoices);
-  closeModal('delete-invoice-modal');
-  showToast('Invoice deleted.');
-  deleteTarget=null;
-}
+// function confirmDeleteInvoice(){
+//   const i=invoices.findIndex(x=>x.id===deleteTarget);
+//   if(i>-1) invoices.splice(i,1);
+//   renderInvoices(invoices);
+//   closeModal('delete-invoice-modal');
+//   showToast('Invoice deleted.');
+//   deleteTarget=null;
+// }
 document.querySelectorAll('.modal-backdrop').forEach(b=>{
   b.addEventListener('click',e=>{if(e.target===b) b.classList.remove('open');});
 });

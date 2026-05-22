@@ -1,7 +1,7 @@
 <?php
 require_once './DBH.php'; // Include the database connection handler to enable database interactions
 abstract class Model{
-    // public $id;
+
     public PDO $pdo;
     protected string $tableName;
     public function __construct(){

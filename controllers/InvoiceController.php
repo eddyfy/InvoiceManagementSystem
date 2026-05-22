@@ -1,134 +1,196 @@
 <?php
 declare(strict_types=1);
+// root/controllers/InvoiceController.php
 require_once './Config.php'; // Include the configuration file to load environment variables
-
+require_once './autoloader.php';
+require_once './requests/validators.php';
+require_once './requests/validateInvoice.php';
 class InvoiceController{
     public function showInvoiceForm(): void {
-        // session_start();
+        $_SESSION['csrf_token'] = password_hash(bin2hex(random_bytes(32)), PASSWORD_DEFAULT);
+
+        // Get the next invoice number for the logged in user
+        $nextInvoiceNumber = 'INV-001'; // fallback default
+
+        if (isset($_SESSION['user'])) {
+            $userId = $_SESSION['user']['id'];
+            $stmt = DBH::getConnection()->prepare(
+            "SELECT MAX(CAST(SUBSTRING_INDEX(invoice_number, '-', -1) AS UNSIGNED)) 
+            FROM invoices 
+            WHERE user_id = ?"
+            );
+            $stmt->execute([$userId]);
+            $max = $stmt->fetchColumn();
+            $nextInvoiceNumber = 'INV-' . sprintf('%03d', ($max ?? 0) + 1);
+        }
+
+        $errors = $_SESSION['errors'] ?? [];
+        $old = $_SESSION['old'] ?? [];
+        unset($_SESSION['errors'], $_SESSION['old']);
         require './views/invoice_form.php'; // Include the invoice form view to display it to the user
     }
+
     public function handleInvoiceSubmission(): void {
-       // Create a new instance of the Config class to access configuration settings
             requireAuth(); 
-            $errors = []; 
-            if(isset($_POST['csrf_token'], $_SESSION['csrf_token']) && hash_equals($_SESSION['csrf_token'], $_POST['csrf_token'])){ // Check if the CSRF token from the form matches the one stored in the session
-                unset($_SESSION['csrf_token']); // Unset the CSRF token from the session to prevent reuse
+            $validated = validateInvoice();
+
+            $invoiceModel = new Invoice();
+            $invoiceItemModel = new InvoiceItem();
+            try{
+                $invoiceModel->pdo->beginTransaction(); // Start a database transaction to ensure data integrity during invoice creation
+                $invoice = $invoiceModel->create([
+                    'user_id' => $validated['user_id'],
+                    'invoice_number' => $validated['invoice_number'],
+                    'invoice_date' => $validated['invoice_date'],
+                    'customer_name' => $validated['customer_name'],
+                    'customer_email' => $validated['customer_email'],
+                    'subtotal' => $validated['subtotal'],
+                    'tax_rate' => $validated['tax_rate'],
+                    'tax_amount' => $validated['tax_amount'],
+                    'discount' => $validated['discount'],
+                    'grand_total' => $validated['grand_total'],
+                    'notes' => $validated['notes']
+                ]); 
                 
-                $user_id = $_POST['user_id'] ?? null;
-                // print_r($_POST); 
-                $invoice_number = trim($_POST['invoice_number'] ?? '');
-                $invoice_date = trim($_POST['invoice_date'] ?? '');
-                $customer_name = trim($_POST['customer_name'] ?? '');
-                $customer_email = strtolower(trim($_POST['customer_email'] ?? ''));
-                $subtotal = $_POST['subtotal'] ?? 0;
-                $items = $_POST['items'] ?? [];
-                $discount = (float) ($_POST['discount'] ?? 0);
-                $tax_rate = (float) ($_POST['tax_rate'] ?? 0);
-                $tax_amount = (float) ($_POST['tax_amount'] ?? 0);
-                $grand_total = (float) ($_POST['grand_total'] ?? 0);
-                $notes = trim($_POST['notes'] ?? ''); 
+                $items = array_map(function($item) use ($invoice){
+                    return [
+                        'invoice_id' => $invoice->id,
+                        'description' => $item['description'],
+                        'quantity' => $item['quantity'],
+                        'price' => $item['price'],
+                    ];
+                }, $validated['items']); // Prepare the invoice items data by mapping the validated items to include the generated invoice ID
+                foreach($items as $item){
+                    $invoiceItemModel->create($item);
+                } // Call the create method of the InvoiceItem model to add each item to the databse 
                 
-                if(empty($invoice_number)){
-                    $errors["invoice_number"][] = "Invoice number is required.";
-                }
-                if(empty($invoice_date)){
-                    $errors["invoice_date"][] = "Invoice date is required.";
-                }
-                if(empty($customer_name)){
-                    $errors["customer_name"][] = "Customer name is required.";
-                }else if(isLongerThan($customer_name, 255)){
-                    $errors["customer_name"][] = "Customer name must be less than 255 characters.";
-                }
-                if(empty($customer_email)){
-                    $errors["customer_email"][] = "Customer email is required.";
-                }else if(isLongerThan($customer_email, 255)){
-                    $errors["customer_email"][] = "Customer email must be less than 255 characters.";
-                }else if(!isEmail($customer_email)){
-                    $errors["customer_email"][] = "Invalid email format.";
-                }
-                if(empty($items) || !is_array($items)){
-                    $errors["items_general"][] = "At least one item is required.";
-                    
-                }else{
-                    foreach($items as $index => $item){
-                        if(empty($item['description'])){
-                            $errors["items"][$index]['description'][] = "Description is required.";
-                        }else if(isLongerThan($item['description'], 255)){
-                            $errors["items"][$index]['description'][] = "Description must be less than 255 characters.";
-                        }
-                        if(empty($item['quantity']) || !is_numeric($item['quantity']) || $item['quantity'] <= 0){
-                            $errors["items"][$index]['quantity'][] = "Quantity must be a positive number.";
-                        }
-                        if(empty($item['price']) || !is_numeric($item['price']) || $item['price'] < 0){
-                            $errors["items"][$index]['price'][] = "Price must be a non-negative number.";
-                        }
-                    }
-                    foreach($items as $index => $item){
-                        $item['description'] = strtolower(trim($item['description'] ?? ''));
-                    }
-                }       
-                if(!empty($errors)){//if there are validation errors, store them in the session and redirect back to the invoice form
-                    $_SESSION['errors'] = $errors; // Store the errors in the session to display them on the form
-                    $_SESSION['old'] = [
-                        'invoice_number' => $invoice_number,
-                        'invoice_date' => $invoice_date,
-                        'customer_name' => $customer_name,
-                        'customer_email' => $customer_email,
-                        'items' => $items,
-                        'discount' => $discount,
-                        'tax_rate' => $tax_rate,
-                        'tax_amount' => $tax_amount,
-                        'notes' => $notes
-                    ]; // Store the old input values in the session to repopulate the form
-                    header('Location: ' . Config::get('baseProjectFolder') . '/invoice'); // Redirect back to the invoice form if there are validation errors
-                    exit();
-                }else{
-                    $invoiceModel = new Invoice();
-                    $invoiceItemModel = new InvoiceItem();
-                    try{
-                        $invoiceModel->pdo->beginTransaction(); // Start a database transaction to ensure data integrity during invoice creation
-                        $invoice = $invoiceModel->create([
-                            'user_id' => $user_id,
-                            'invoice_number' => $invoice_number,
-                            'invoice_date' => $invoice_date,
-                            'customer_name' => $customer_name,
-                            'customer_email' => $customer_email,
-                            'subtotal' => $subtotal,
-                            'tax_rate' => $tax_rate,
-                            'tax_amount' => $tax_amount,
-                            'discount' => $discount,
-                            'grand_total' => $grand_total,
-                            'notes' => $notes
-                        ]); 
-                        
-                        
-                        // print_r($invoice); 
-                        
-                        $items = array_map(function($item) use ($invoice){
-                            return [
-                                'invoice_id' => $invoice->id,
-                                'description' => $item['description'],
-                                'quantity' => $item['quantity'],
-                                'price' => $item['price'],
-    
-                            ];
-                        }, $items);
-                        foreach($items as $item){
-                            $invoiceItemModel->create($item);
-                        } // Call the create method of the InvoiceItem  
-                         // Output a success message with the created invoice ID
-                        $invoiceModel->pdo->commit();
-                        $_SESSION['message'] = "Invoice created successfully with ID: " . $invoice->id; // Store a success message in the session to display on the dashboard
-                        header('Location: ' . Config::get('baseProjectFolder') . '/dashboard');
-                        // Call the create method of the Invoice model to handle the invoice creation logic, passing the invoice data and items
-                    }catch(Exception $e){
-                        $invoiceModel->pdo->rollBack(); // Roll back the transaction if an error occurs during invoice creation to maintain data integrity
-                        die("Error creating invoice: " . $e->getMessage()); // Handle any errors that occur during invoice creation
-                    }
-                }
-            
-            } 
+                $invoiceModel->pdo->commit(); //commit the database transaction to save changesif succesfull
+                $_SESSION['message'] = "Invoice created successfully with ID: " . $invoice->id; // Store a success message in the session to display on the dashboard
+                header('Location: ' . Config::get('baseProjectFolder') . '/dashboard');
+                exit();
+            }catch(Exception $e){
+                $invoiceModel->pdo->rollBack(); // Roll back the transaction if an error occurs during invoice creation to maintain data integrity
+                $message = match ($e->getMessage()) {
+                    'duplicate' => 'An invoice with that number already exists.',
+                    default     => 'Something went wrong. Please try again.',
+                };
+                error_log("Error creating invoice: " . $e->getMessage()); 
+                echo $message; // Handle any errors that occur during invoice creation
+            }
     }
-    
+    public function showInvoice(array $params):void{
+        $invoiceId = (int) ($params['id']);
+        $invoiceModel = new Invoice();
+        try{
+            $invoice = $invoiceModel->getById($invoiceId, $_SESSION['user']['id']);
+            if(!$invoice){
+                $_SESSION['message'] = "Invoice not found.";
+                header('Location: ' . Config::get('baseProjectFolder') . '/dashboard');
+                exit;
+            }
+            $invoiceItems = new InvoiceItem();
+            $items = $invoiceItems->getByInvoiceId($invoiceId);
+        }catch(Exception $e){
+            error_log("Error fetching invoice: " . $e->getMessage());
+            echo "An error occurred while fetching the invoice.";
+        }
+
+        require './views/invoice_view.php'; // Include the invoice view to display the invoice details to the user
+    }
+
+    public function showEditForm(array $params):void{
+        $invoiceId = (int) ($params['id']);
+        $invoiceModel = new Invoice();
+        $invoice = null;
+        $items = [];
+        try{
+            $invoice = $invoiceModel->getById($invoiceId, $_SESSION['user']['id']);
+            if(!$invoice){
+                $_SESSION['message'] = "Invoice not found.";
+                header('Location: ' . Config::get('baseProjectFolder') . '/dashboard');
+                exit;
+            }
+            $invoiceItems = new InvoiceItem();
+            $items = $invoiceItems->getByInvoiceId($invoiceId);
+        }catch(Exception $e){
+            error_log("Error fetching invoice: " . $e->getMessage());
+            echo "An error occurred while fetching the invoice.";
+        }
+
+
+        $_SESSION['csrf_token'] = password_hash(bin2hex(random_bytes(32)), PASSWORD_DEFAULT);
+
+        // Merge session errors/old input on validation failure 
+        $errors = $_SESSION['errors'] ?? [];
+        $old    = $_SESSION['old']    ?? [];
+        unset($_SESSION['errors'], $_SESSION['old']);
+
+        // If there are old values from a failed submission, override $invoice and $items
+        if (!empty($old)) {
+            $invoice = array_merge($invoice, $old);
+            if (!empty($old['items'])) {
+                $items = array_values($old['items']);
+            }
+        }
+
+        require './views/invoice_edit.php'; // Include the invoice edit form to allow the user to edit the invoice details
+    }
+    public function updateInvoice(array $params):void{
+        $invoiceId = (int) ($params['id']);
+        $validated = validateInvoice();
+        $status = $_POST['status'] ?? 'draft';
+        $invoiceModel = new Invoice();
+        $invoiceItemModel = new InvoiceItem();
+        $invoiceModel->pdo->beginTransaction();
+        try{
+            $invoiceModel->update($invoiceId, $_SESSION['user']['id'], [
+                'invoice_number' => $validated['invoice_number'],
+                'invoice_date' => $validated['invoice_date'],
+                'customer_name' => $validated['customer_name'],
+                'customer_email' => $validated['customer_email'],
+                'subtotal' => $validated['subtotal'],
+                'tax_rate' => $validated['tax_rate'],
+                'tax_amount' => $validated['tax_amount'],
+                'discount' => $validated['discount'],
+                'grand_total' => $validated['grand_total'],
+                'notes' => $validated['notes'],
+                'status' => $status
+            ]);
+            $invoiceItemModel->deleteByInvoiceId($invoiceId); // Delete existing items before adding updated items to handle item updates and deletions
+            $items = array_map(function($item) use ($invoiceId){
+                return [    
+                    'invoice_id' => $invoiceId,
+                    'description' => $item['description'],
+                    'quantity' => $item['quantity'],
+                    'price' => $item['price'],
+                ];
+            }, $validated['items']);
+            foreach($items as $item){
+                $invoiceItemModel->create($item);   
+            }
+            $invoiceModel->pdo->commit();
+        } catch (PDOException $e) {
+            $invoiceModel->pdo->rollback();
+            error_log("Error updating invoice: " . $e->getMessage());
+            echo "An error occurred while updating the invoice.";
+        }
+        $_SESSION['message'] = "Invoice with id " . $invoiceId . " updated successfully."; // Store a success message in the session to display on the dashboard after successful update
+        header('Location: ' . Config::get('baseProjectFolder') . '/dashboard');
+        exit();
+    }
+    public function deleteInvoice(array $params):void{
+        $invoiceId = (int) ($params['id']);
+        echo "Deleting invoice with ID: " . $params['id']; // Output the invoice ID for demonstration purposes (replace with actual invoice deletion logic)
+        $invoiceModel = new Invoice();
+        try{
+            $invoiceModel->deleteById($invoiceId, $_SESSION['user']['id']);
+        }catch(Exception $e){
+            error_log("Error deleting invoice: " . $e->getMessage());
+            echo "An error occurred while deleting the invoice.";
+        }
+        $_SESSION['message'] = "Invoice deleted successfully."; // Store a success message in the session to display on the dashboard after successful deletion
+        header('Location: ' . Config::get('baseProjectFolder') . '/dashboard'); // Redirect back to the dashboard after deleting the invoice
+        exit();
+    }
     
 } 

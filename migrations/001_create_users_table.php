@@ -3,8 +3,9 @@ declare(strict_types=1);
 ini_set('display_errors', 1);
 error_reporting(E_ALL);
 
-require_once '../DBH.php'; // Include the database connection handler
+// require_once '../DBH.php'; // Include the database connection handler
 
+require_once '../autoloader.php';
 $stmt = "CREATE TABLE IF NOT EXISTS users (
     id INT AUTO_INCREMENT PRIMARY KEY,
     firstname VARCHAR(100) NOT NULL,
@@ -20,5 +21,7 @@ try {
     DBH::getConnection()->exec($stmt); // Execute the SQL statement to create the users table
     echo "Users table created successfully.";
 } catch (PDOException $e) {
-    die("Error creating users table: " . $e->getMessage()); // Handle any errors that occur during table creation
+    error_log("Error creating users table: " . $e->getMessage()); 
+    echo "An error occurred while creating the users table.";
+    exit();
 }

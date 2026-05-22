@@ -1,10 +1,8 @@
 <?php
 require_once '../invoiceManager/Config.php';
 
-$_SESSION['csrf_token'] = password_hash(bin2hex(random_bytes(32)), PASSWORD_DEFAULT);
-$errors = $_SESSION['errors'] ?? [];  
-$old = $_SESSION['old'] ?? [];
-unset($_SESSION['errors'], $_SESSION['old']); // Clear errors and old input after using
+/** @var array $errors */
+/** @var array $old */
 ?>
 
 <!DOCTYPE html>

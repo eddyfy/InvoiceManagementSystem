@@ -23,7 +23,6 @@ require_once '../DBH.php'; // Include the database connection handler
 // );";
 $stmt = "CREATE TABLE IF NOT EXISTS invoices (
     id INT AUTO_INCREMENT PRIMARY KEY,
-
     user_id INT NOT NULL,
 
     invoice_number VARCHAR(50) NOT NULL,
@@ -39,7 +38,7 @@ $stmt = "CREATE TABLE IF NOT EXISTS invoices (
     grand_total DECIMAL(10,2) NOT NULL,
 
     notes TEXT,
-    status ENUM('draft', 'sent', 'paid') DEFAULT 'draft',
+    status ENUM('draft', 'sent', 'paid', 'overdue') DEFAULT 'draft',
 
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -52,5 +51,7 @@ try{
     DBH::getConnection()->exec($stmt); // Execute the SQL statement to create the invoices table
     echo "Invoices table created successfully.";
 } catch (PDOException $e) {
-    die("Error creating invoices table: " . $e->getMessage()); // Handle any errors that occur during table creation
+    error_log("Error creating invoices table: " . $e->getMessage());
+    echo "An error occurred while creating the invoices table.";
+    exit();
 }

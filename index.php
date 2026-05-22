@@ -1,5 +1,6 @@
 <?php
 declare(strict_types=1);
+// index.php
 ini_set('display_errors', 1);
 error_reporting(E_ALL);
 require_once 'utils.php'; // Include utility functions for input sanitization and authentication checks
@@ -39,6 +40,14 @@ $router->post(Config::get('baseProjectFolder') . '/profile/change-password', act
 
 $router->delete(Config::get('baseProjectFolder') . '/profile/delete', action(UserController::class, 'deleteAccount'));
 
+$router->get(Config::get('baseProjectFolder') . '/invoice/view/{id}', action(InvoiceController::class, 'showInvoice'));
+
+$router->get(Config::get('baseProjectFolder') . '/invoice/edit/{id}', action(InvoiceController::class, 'showEditForm'));
+
+$router->put(Config::get('baseProjectFolder') . '/invoice/update/{id}', action(InvoiceController::class, 'updateInvoice'));
+
+$router->delete(Config::get('baseProjectFolder') . '/invoice/delete/{id}', action(InvoiceController::class, 'deleteInvoice'));
+
 
 $router->dispatch($path);
 
@@ -47,8 +56,8 @@ $router->dispatch($path);
 
 // Helper function to create a closure that instantiates the specified controller and calls the specified method
 function action(string $controller, string $method): Closure { 
-    return function () use ($controller, $method) {
-        return (new $controller())->$method();
+    return function (array $params = []) use ($controller, $method) {
+        return (new $controller())->$method($params);
     };
 }
 ?>

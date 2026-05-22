@@ -32,7 +32,7 @@ function requireAuth():void{
 
 // Helper to get old input value with fallback
 function old(array $old, string $key, string $fallback = ''): string {
-    return htmlspecialchars($old[$key] ?? $fallback);
+    return htmlspecialchars((string)($old[$key] ?? $fallback), ENT_QUOTES, 'UTF-8');
 }
 
 // Helper to display field error

@@ -1,10 +1,7 @@
 <?php
 declare(strict_types=1);
-$logoutMessage = '';
-if (isset($_SESSION['message'])) {
-    $logoutMessage = $_SESSION['message'];
-    unset($_SESSION['message']);
-}
+/** @var string $logoutMessage */
+
 ?>
 <!DOCTYPE html>
 <html lang="en">

@@ -3,11 +3,33 @@ declare(strict_types=1);
 
 class HomeController{
     public function index(): void {
+        unset($_SESSION['previous_page']);
+        $logoutMessage = '';
+        if (isset($_SESSION['message'])) {
+            $logoutMessage = $_SESSION['message'];
+            unset($_SESSION['message']);
+        }
         require './views/home.php'; 
     }
     public function dashboard(): void{
+
         requireAuth();
-       
+        unset($_SESSION['previous_page']);
+        $userId = $_SESSION['user']['id'];
+        $invoiceModel = new Invoice();
+
+        $stats = $invoiceModel->getStats($userId);
+        $recentInvoices = $invoiceModel->getRecentByUser($userId, 3);
+        $allInvoices = $invoiceModel->getAllByUser($userId);
+
+        $_SESSION['csrf_token'] = password_hash(bin2hex(random_bytes(32)), PASSWORD_DEFAULT);
+        $errors = [];
+        $old =[];
+        if(isset($_SESSION['errors'])){
+            $old = $_SESSION['old'] ?? [];
+            $errors = $_SESSION['errors'];
+            unset($_SESSION['errors'], $_SESSION['old']);
+        }
         require './views/dashboard.php';
     }
 }

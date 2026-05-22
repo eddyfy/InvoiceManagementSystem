@@ -19,5 +19,7 @@ try{
     DBH::getConnection()->exec($stmt); // Execute the SQL statement to create the invoice_items table
     echo "Invoice items table created successfully.";
 } catch (PDOException $e) {
-    die("Error creating invoice items table: " . $e->getMessage()); // Handle any errors that occur during table creation
+    error_log("Error creating invoice items table: " . $e->getMessage());
+    echo "An error occurred while creating the invoice items table.";
+    exit();
 }

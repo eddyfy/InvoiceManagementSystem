@@ -24,6 +24,14 @@ class User extends Model{
             throw new RuntimeException("Database error: " . $e->getMessage());
         }
     }
-
+    function deleteById(int $userId): bool {
+        $sql = "DELETE FROM {$this->tableName} WHERE id = :id";
+        try {
+            $stmt = $this->pdo->prepare($sql);
+            return $stmt->execute([':id' => $userId]); // Execute the delete statement and return true if successful
+        } catch (PDOException $e) {
+            throw new RuntimeException("Database error: " . $e->getMessage());
+        }
+    }
     
 }

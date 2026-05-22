@@ -238,6 +238,7 @@ td input:focus{border-color:var(--color-blue);box-shadow:0 0 0 3px var(--color-b
         <label>Status</label>
         <select name="status" class="<?php echo isset($errors['status']) ? 'error' : ''; ?>">
           <option value="sent" <?php echo $invoice['status'] === 'sent' ? 'selected' : ''; ?>>Sent</option>
+          <option value="draft" <?php echo $invoice['status'] === 'draft' ? 'selected' : ''; ?>>Draft</option>
           <option value="paid"    <?php echo $invoice['status'] === 'paid'    ? 'selected' : ''; ?>>Paid</option>
           <option value="overdue" <?php echo $invoice['status'] === 'overdue' ? 'selected' : ''; ?>>Overdue</option>
         </select>

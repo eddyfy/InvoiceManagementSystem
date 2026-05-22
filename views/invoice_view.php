@@ -98,6 +98,12 @@ button.nav-link{background:none;border:none;cursor:pointer;font-family:var(--fon
   border-radius:var(--radius-lg);padding:1.5rem;margin-bottom:1.1rem;
   box-shadow:0 1px 3px rgba(0,0,0,0.04);
 }
+/* ── BREADCRUMB ── */
+.breadcrumb{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--color-text-secondary);margin-bottom:1rem;}
+.breadcrumb a{color:var(--color-text-secondary);text-decoration:none;}
+.breadcrumb a:hover{color:var(--color-text-primary);text-decoration:underline;}
+.breadcrumb svg{width:12px;height:12px;stroke:var(--color-border-mid);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
+
 
 /* ── INVOICE HEADER CARD ── */
 .invoice-header{
@@ -184,7 +190,7 @@ tbody tr:hover{background:#f8fafc;}
 
 /* ── PRINT ── */
 @media print{
-  .topnav,.page-header-right,.page-header-left, .toast,.modal-backdrop{display:none!important;}
+  .topnav,.page-header-right,.page-header-left,.breadcrumb,.toast,.modal-backdrop{display:none!important;}
   body{background:white;}
   .wrap{margin:0;max-width:100%;padding:0;}
   .card{box-shadow:none;border:1px solid #ddd;break-inside:avoid;}
@@ -217,6 +223,14 @@ tbody tr:hover{background:#f8fafc;}
     <button class="nav-link danger" type="button" onclick="openLogout()">Logout</button>
   </div>
 </nav>
+
+<div class="wrap" style="margin-bottom:0; padding-bottom:0;">
+     <div class="breadcrumb">
+    <a href="<?php echo Config::get('baseProjectFolder'); ?>/dashboard">Dashboard</a>
+    <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+    <span><?php echo htmlspecialchars($invoice['invoice_number']); ?></span>
+    </div>
+</div>
 
 <div class="wrap">
 

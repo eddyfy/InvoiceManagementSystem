@@ -69,6 +69,11 @@ button.nav-link{
   background:none;border:none;color:var(--color-text-secondary);font-size:13.5px;font-weight:500;
   padding:7px 14px;border-radius:var(--radius-md);transition:background 0.12s,color 0.12s;cursor:pointer;
 }
+/* ── BREADCRUMB ── */
+.breadcrumb{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--color-text-secondary);margin-bottom:1rem;}
+.breadcrumb a{color:var(--color-text-secondary);text-decoration:none;}
+.breadcrumb a:hover{color:var(--color-text-primary);text-decoration:underline;}
+.breadcrumb svg{width:12px;height:12px;stroke:var(--color-border-mid);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
 
 /* ── PAGE WRAPPER ── */
 .wrap{max-width:860px;margin:2rem auto;padding:0 1rem;}
@@ -251,7 +256,7 @@ td input:focus{border-color:var(--color-blue);box-shadow:0 0 0 3px var(--color-b
 
 /* ── PRINT ── */
 @media print{
-  .topnav,.actions,.page-header, .add-btn,.remove-btn,.toast{display:none!important;}
+  .topnav,.actions,.page-header,.breadcrumb, .add-btn,.remove-btn,.toast{display:none!important;}
   body{background:white;}
   .card{box-shadow:none;border:1px solid #ccc;}
   .payment-details{background:white;border:1px dashed #999;}
@@ -279,6 +284,16 @@ td input:focus{border-color:var(--color-blue);box-shadow:0 0 0 3px var(--color-b
     <?php endif; ?>
   </div>
 </nav>
+
+<?php if(isset($_SESSION['user'])): ?>
+ <div class="wrap" style="margin-bottom:0; padding-bottom:0;">
+      <div class="breadcrumb">
+      <a href="<?php echo Config::get('baseProjectFolder'); ?>/dashboard">Dashboard</a>
+      <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+      <span>New Invoice</span>
+      </div>
+  </div>
+<?php endif; ?>
 
 <form class="wrap" action="<?php echo Config::get('baseProjectFolder'); ?>/invoice" method="post">
 

@@ -11,7 +11,6 @@ class InvoiceController{
 
         // Get the next invoice number for the logged in user
         $nextInvoiceNumber = 'INV-001'; // fallback default
-
         if (isset($_SESSION['user'])) {
             $userId = $_SESSION['user']['id'];
             $stmt = DBH::getConnection()->prepare(
@@ -25,13 +24,22 @@ class InvoiceController{
         }
 
         $errors = $_SESSION['errors'] ?? [];
-        $old = $_SESSION['old'] ?? [];
+        unset($_SESSION['invoice_draft']['invoice_number']);
+        $old = $_SESSION['old'] ?? $_SESSION['invoice_draft'] ?? [];
+        // var_dump($old);
+       
         unset($_SESSION['errors'], $_SESSION['old']);
         require './views/invoice_form.php'; // Include the invoice form view to display it to the user
     }
 
     public function handleInvoiceSubmission(): void {
-            requireAuth(); 
+            if (!isset($_SESSION['user'])) {
+                $_SESSION['invoice_draft'] = $_POST;
+                $_SESSION['previous_page'] = 'invoice_form';
+                header('Location: ' . Config::get('baseProjectFolder') . '/login');
+                exit();
+            }
+
             $validated = validateInvoice();
 
             $invoiceModel = new Invoice();

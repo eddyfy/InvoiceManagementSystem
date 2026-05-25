@@ -9,7 +9,9 @@ require_once "./utils.php";
 /** @var string $nextInvoiceNumber */
 /** @var array $errors */
 /** @var array $old */
-
+// var_dump($_SESSION['invoice_draft']);
+// var_dump($old);
+// $old = array_merge($_SESSION['invoice_draft'] ?? [], $old);
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -403,7 +405,9 @@ td input:focus{border-color:var(--color-blue);box-shadow:0 0 0 3px var(--color-b
     <?php if (isset($_SESSION['user'])): ?>
       <button class="btn-primary" type="submit">Save Invoice</button>
     <?php else: ?>
+
       <button class="btn-primary" type="submit">Log in to save invoice</button>
+      <?php $_SESSION['old'] = $_POST; // Preserve form data in session to repopulate after redirecting to login page ?>
       <?php $_SESSION['previous_page'] = "invoice_form"; ?>
     <?php endif; ?>
   </div>
@@ -420,7 +424,7 @@ td input:focus{border-color:var(--color-blue);box-shadow:0 0 0 3px var(--color-b
 
 <script>
 
-  console.log("here")
+  console.log("here");
   document.getElementById('discount').addEventListener('blur', function() {
     if (this.value === '') this.value = 0;
   });
@@ -514,10 +518,15 @@ td input:focus{border-color:var(--color-blue);box-shadow:0 0 0 3px var(--color-b
     document.getElementById('inv-date').value = new Date().toISOString().split('T')[0];
   <?php endif; ?>
 
+  <?php
+  $itemsJson  = json_encode(array_values((array)($old['items'] ?? [])));
+  $errorsJson = json_encode((array)($errors['items'] ?? []));
+  ?>
+
   <?php if (!empty($old['items'])): ?>
-    const oldItems = <?php echo json_encode(array_values($old['items'])); ?>;
-    console.log("here", oldItems);
-    const itemErrors = <?php echo json_encode((array) $errors['items'] ?? []); ?>;
+    const oldItems = <?php echo $itemsJson; ?>;
+    // console.log("here", oldItems);
+    const itemErrors = <?php echo $errorsJson; ?>;
     oldItems.forEach((item, index) => addRow(item.description, item.price, item.quantity, itemErrors[index] ?? {}));
     recalc();
   <?php else: ?>

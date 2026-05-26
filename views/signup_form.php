@@ -1,5 +1,5 @@
 <?php
-require_once '../invoiceManager/Config.php';
+// require_once '../invoiceManager/Config.php';
 
 /** @var array $errors */
 /** @var array $old */

@@ -5,7 +5,7 @@ error_reporting(E_ALL);
 
 // require_once '../DBH.php'; // Include the database connection handler
 
-require_once '../autoloader.php';
+require_once  __DIR__ . '/../autoloader.php';
 $stmt = "CREATE TABLE IF NOT EXISTS users (
     id INT AUTO_INCREMENT PRIMARY KEY,
     firstname VARCHAR(100) NOT NULL,

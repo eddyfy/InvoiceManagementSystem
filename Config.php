@@ -57,7 +57,7 @@ class Config
             case 'dbname':
                 return getenv('DB_NAME') ?: '';
             case 'baseProjectFolder':
-                return getenv('APP_ENV') === 'dev' ? '/invoicemanager' : '/';
+                return getenv('APP_ENV') === 'dev' ? '/invoicemanager' : '';
             default:
                 return $default;
         }

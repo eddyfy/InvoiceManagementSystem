@@ -11,6 +11,7 @@ class InvoiceController{
 
         // Get the next invoice number for the logged in user
         $nextInvoiceNumber = 'INV-001'; // fallback default
+        
         if (isset($_SESSION['user'])) {
             $userId = $_SESSION['user']['id'];
             $stmt = DBH::getConnection()->prepare(

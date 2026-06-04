@@ -40,6 +40,10 @@ $router->post(Config::get('baseProjectFolder') . '/profile/change-password', act
 
 $router->delete(Config::get('baseProjectFolder') . '/profile/delete', action(UserController::class, 'deleteAccount'));
 
+$router->post(Config::get('baseProjectFolder') . '/profile/bank-details', action(UserController::class, 'saveBankDetails'));
+
+$router->post(Config::get('baseProjectFolder') . '/profile/update-bank-details', action(UserController::class, 'updateBankDetails'));
+
 $router->get(Config::get('baseProjectFolder') . '/invoice/view/{id}', action(InvoiceController::class, 'showInvoice'));
 
 $router->get(Config::get('baseProjectFolder') . '/invoice/edit/{id}', action(InvoiceController::class, 'showEditForm'));
@@ -50,9 +54,6 @@ $router->delete(Config::get('baseProjectFolder') . '/invoice/delete/{id}', actio
 
 
 $router->dispatch($path);
-
-
-
 
 // Helper function to create a closure that instantiates the specified controller and calls the specified method
 function action(string $controller, string $method): Closure { 

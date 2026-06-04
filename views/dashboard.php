@@ -412,15 +412,21 @@ input:focus,select.styled:focus{outline:none;border-color:var(--color-blue);box-
         <form  action="<?php echo Config::get('baseProjectFolder'); ?>/profile/update" method="POST" id="profile-form" class="updateInfo card">
             <div class="form-grid" >
 
-              <div class="field <?php echo isset($errors['firstname']) ? 'error' : ''; ?>"><label>First name</label><input type="text" name="firstname" id="fname" value="<?php echo old($old, 'firstname', htmlspecialchars($_SESSION['user']['firstname'])); ?>"/> <?php echo fieldError($errors, 'firstname'); ?> </div>
+              <div class="field <?php echo isset($errors['profile']['firstname']) ? 'error' : ''; ?>"><label>First name</label><input type="text" name="firstname" id="fname" value="<?php echo old($old, 'firstname', htmlspecialchars($_SESSION['user']['firstname'])); ?>"/> <?php echo fieldError($errors, 'profile', null, 'firstname'); ?> </div>
              
-              <div class="field <?php echo isset($errors['lastname']) ? 'error' : ''; ?>"><label>Last name</label><input type="text" name="lastname" id="lname" value="<?php echo old($old, 'lastname', htmlspecialchars($_SESSION['user']['lastname'])); ?>"/><?php echo fieldError($errors, 'lastname'); ?></div>
+              <div class="field <?php echo isset($errors['profile']['lastname']) ? 'error' : ''; ?>"><label>Last name</label><input type="text" name="lastname" id="lname" value="<?php echo old($old, 'lastname', htmlspecialchars($_SESSION['user']['lastname'])); ?>"/><?php echo fieldError($errors, 'profile', null, 'lastname'); ?></div>
               
-              <div class="field <?php echo isset($errors['email']) ? 'error' : ''; ?>"><label>Email address</label><input type="email" name="email" id="email" value="<?php echo old($old, 'email', htmlspecialchars($_SESSION['user']['email'])); ?>"/> <?php echo fieldError($errors, 'email'); ?></div>
-             
+              <div class="field <?php echo isset($errors['profile']['email']) ? 'error' : ''; ?>"><label>Email address</label><input type="email" name="email" id="email" value="<?php echo old($old, 'email', htmlspecialchars($_SESSION['user']['email'])); ?>"/> <?php echo fieldError($errors, 'profile', null, 'email'); ?></div>
+
+              <div class="field full <?php echo isset($errors['profile']['bank_account_number']) ? 'error' : ''; ?>"><label>Account number</label><input type="text" name="bank_account_number" id="phone"  inputmode="numeric" pattern="[0-9]*" autocomplete="off" value="<?php echo old($old, 'bank_account_number', $_SESSION['user']['bank_account_number'] ? htmlspecialchars($_SESSION['user']['bank_account_number']) : ''); ?>"/> <?php echo fieldError($errors, 'profile', null, 'bank_account_number'); ?></div>
+
+              <div class="field full <?php echo isset($errors['profile']['bank_account_name']) ? 'error' : ''; ?>"><label>Account name</label><input type="text" name="bank_account_name" id="account-name" value="<?php echo ucwords(old($old, 'bank_account_name', $_SESSION['user']['bank_account_name'] ? htmlspecialchars($_SESSION['user']['bank_account_name']) : '') ); ?>"/> <?php echo fieldError($errors, 'profile', null, 'bank_account_name'); ?></div>
+
+              <div class="field full <?php echo isset($errors['profile']['bank_name']) ? 'error' : ''; ?>"><label>Bank name</label><input type="text" name="bank_name" id="bank" value="<?php echo ucwords(old($old, 'bank_name', $_SESSION['user']['bank_name'] ? htmlspecialchars($_SESSION['user']['bank_name']) : '') ); ?>"/> <?php echo fieldError($errors, 'profile', null, 'bank_name'); ?></div>
+
               <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>"/>
 
-              <!-- <div class="field full"><label>Phone number</label><input type="tel" id="phone" value="0284413444"/></div> -->
+           
               <!-- <div class="field full"><label>Business / Bank name</label><input type="text" id="bank" value="WEMA BANK"/></div> -->
             </div>
             <div class="form-actions">
@@ -432,11 +438,11 @@ input:focus,select.styled:focus{outline:none;border-color:var(--color-blue);box-
       <form action="<?php echo Config::get('baseProjectFolder'); ?>/profile/change-password" method="POST" class="card">
           <p class="section-title">Change Password</p>
           <div class="form-grid">
-            <div class="field full <?php echo isset($errors['current_password']) ? 'error' : ''; ?>"><label>Current password</label><input type="password" name="current_password" id="pw-current" placeholder="••••••••"/><?php echo fieldError($errors, 'current_password'); ?> </div>
-            <div class="field <?php echo isset($errors['new_password']) ? 'error' : ''; ?>"><label>New password</label><input type="password" name="new_password" id="pw-new" placeholder="••••••••"/><?php echo fieldError($errors, 'new_password'); ?> </div>
-            <div class="field <?php echo isset($errors['confirm_password']) ? 'error' : ''; ?>"><label>Confirm new password</label><input type="password" name="confirm_password" id="pw-confirm" placeholder="••••••••"/><?php echo fieldError($errors, 'confirm_password'); ?> </div>
+            <div class="field full <?php echo isset($errors['profile']['current_password']) ? 'error' : ''; ?>"><label>Current password</label><input type="password" name="current_password" id="pw-current" placeholder="••••••••"/><?php echo fieldError($errors, 'profile', null, 'current_password'); ?> </div>
+            <div class="field <?php echo isset($errors['profile']['new_password']) ? 'error' : ''; ?>"><label>New password</label><input type="password" name="new_password" id="pw-new" placeholder="••••••••"/><?php echo fieldError($errors, 'profile', null, 'new_password'); ?> </div>
+            <div class="field <?php echo isset($errors['profile']['confirm_password']) ? 'error' : ''; ?>"><label>Confirm new password</label><input type="password" name="confirm_password" id="pw-confirm" placeholder="••••••••"/><?php echo fieldError($errors, 'profile', null, 'confirm_password'); ?> </div>
             <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>"/>
-          </div>
+          </div> 
           <div class="form-actions"><button class="btn-primary" type="submit" >Update password</button></div>
         </div>
       </form>
@@ -459,7 +465,7 @@ input:focus,select.styled:focus{outline:none;border-color:var(--color-blue);box-
     <button class="bnav-item" id="bnav-invoices" onclick="showSection('invoices')">
       <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>Invoices
     </button>
-    <button class="bnav-item" onclick="showToast('Navigating to invoice form…')">
+    <button class="bnav-item" onclick="showToast('Navigating to invoice form…'); window.location.href='<?php echo Config::get('baseProjectFolder'); ?>/invoice'"> 
       <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>New
     </button>
     <button class="bnav-item" id="bnav-profile" onclick="showSection('profile')">
@@ -502,6 +508,101 @@ input:focus,select.styled:focus{outline:none;border-color:var(--color-blue);box-
   </div>
 </div>
 
+<!-- BANK SETUP MODAL -->
+<!-- <div class="modal-backdrop" id="bank-setup-modal">
+  <div class="modal" style="max-width:460px;">
+    <h3>Set up your bank details</h3>
+    <p>Add your bank details so clients can pay you directly on invoices. You can always update this later in your profile.</p>
+    
+    <form action="<?php echo Config::get('baseProjectFolder'); ?>/profile/bank-details" method="POST">
+      <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>"/>
+
+      <div class="form-grid" style="margin-bottom:0;">
+        <div class="field full <?php echo isset($errors['bank_account_name']) ? 'error' : ''; ?>">
+          <label>Account holder name</label>
+          <input type="text" name="bank_account_name" placeholder="e.g. John Doe"
+            value="<?php echo old($old, 'bank_account_name', ''); ?>"
+            class="<?php echo isset($errors['bank_account_name']) ? 'error' : ''; ?>"/>
+          <?php echo fieldError($errors, 'bank_account_name'); ?>
+        </div>
+
+        <div class="field full <?php echo isset($errors['bank_account_number']) ? 'error' : ''; ?>">
+          <label>Account number</label>
+          <input type="tel" name="bank_account_number" placeholder="e.g. 0123456789"
+            value="<?php echo old($old, 'bank_account_number', ''); ?>"
+            class="<?php echo isset($errors['bank_account_number']) ? 'error' : ''; ?>"/>
+          <?php echo fieldError($errors, 'bank_account_number'); ?>
+        </div>
+
+        <div class="field full <?php echo isset($errors['bank_name']) ? 'error' : ''; ?>">
+          <label>Bank name</label>
+          <input type="text" name="bank_name" placeholder="e.g. First Bank"
+            value="<?php echo old($old, 'bank_name', ''); ?>"
+            class="<?php echo isset($errors['bank_name']) ? 'error' : ''; ?>"/>
+          <?php echo fieldError($errors, 'bank_name'); ?>
+        </div>
+      </div>
+
+      <div class="modal-actions" style="margin-top:18px;">
+        <button type="button" class="btn-outline" onclick="closeBankModal()">Set up later</button>
+        <button type="submit" class="btn-primary">Save details</button>
+      </div>
+    </form>
+
+  </div>
+</div> -->
+
+<!-- BANK SETUP MODAL -->
+<div class="modal-backdrop" id="bank-setup-modal">
+  <div class="modal" style="max-width:460px;">
+    <h3>Set up your bank details</h3>
+    <p>Add your bank details so clients can pay you directly on invoices. You can always update this later in your profile.</p>
+    
+    <form action="<?php echo Config::get('baseProjectFolder'); ?>/profile/bank-details" method="POST">
+      <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>"/>
+
+      <div class="form-grid" style="margin-bottom:0;">
+        <div class="field full <?php echo isset($errors['bank_account_name']) ? 'error' : ''; ?>">
+          <label>Account holder name</label>
+          <input type="text" name="bank_account_name" placeholder="e.g. John Doe"
+            value="<?php echo old($old, 'bank_account_name', ''); ?>"
+            class="<?php echo isset($errors['bank_account_name']) ? 'error' : ''; ?>"/>
+          <?php echo fieldError($errors, 'bank_account_name'); ?>
+        </div>
+
+        <div class="field full <?php echo isset($errors['bank_account_number']) ? 'error' : ''; ?>">
+          <label>Account number</label>
+          <input type="tel" name="bank_account_number" placeholder="e.g. 0123456789"
+            value="<?php echo old($old, 'bank_account_number', ''); ?>"
+            class="<?php echo isset($errors['bank_account_number']) ? 'error' : ''; ?>"/>
+          <?php echo fieldError($errors, 'bank_account_number'); ?>
+        </div>
+
+        <div class="field full <?php echo isset($errors['bank_name']) ? 'error' : ''; ?>">
+          <label>Bank name</label>
+          <input type="text" name="bank_name" placeholder="e.g. First Bank"
+            value="<?php echo old($old, 'bank_name', ''); ?>"
+            class="<?php echo isset($errors['bank_name']) ? 'error' : ''; ?>"/>
+          <?php echo fieldError($errors, 'bank_name'); ?>
+        </div>
+      </div>
+
+      <!-- Don't Show Again Checkbox -->
+      <div style="margin: 16px 0;">
+        <label style="font-size:13px; color:#64748b; cursor:pointer; user-select:none;">
+          <input type="checkbox" id="dont-show-again" style="margin-right:8px;">
+          Don't show this again
+        </label>
+      </div>
+
+      <div class="modal-actions" style="margin-top:10px;">
+        <button type="button" class="btn-outline" onclick="closeBankModal()">Set up later</button>
+        <button type="submit" class="btn-primary">Save details</button>
+      </div>
+    </form>
+
+  </div>
+</div>
 
 <div class="toast" id="toast"></div>
 
@@ -680,13 +781,82 @@ async function deleteAccount() {
     alert('Something went wrong. Please try again.');
   }
 }
+
+
+
+// ── BANK SETUP MODAL ──
+(function initBankModal() {
+    const userId = <?php echo json_encode($_SESSION['user']['id'] ?? ''); ?>;
+    const hasBankDetails = <?php echo json_encode((bool)($_SESSION['user']['has_bank_details'] ?? false)); ?>;
+    const hasErrors = <?php echo json_encode(!empty($errors) && (isset($errors['bank_account_name']) || isset($errors['bank_account_number']) || isset($errors['bank_name']))); ?>;
+
+    if (hasBankDetails) return;
+
+    // Show immediately if there are validation errors
+    if (hasErrors) {
+        setTimeout(() => {
+            document.getElementById('bank-setup-modal').classList.add('open');
+        }, 600);
+        return;
+    }
+
+    const dontShowKey = 'bankModalDontShow_' + userId;
+
+    // Check if user permanently hid the modal
+    if (localStorage.getItem(dontShowKey) === 'true') {
+        return;
+    }
+
+    // Create user-specific skip key
+    const skipKey = 'bankModalSkipped_' + userId;
+
+    // Check if this specific user skipped it in this session
+    if (sessionStorage.getItem(skipKey) === 'true') {
+        return; // Don't show for this user
+    }
+
+    // Show the modal
+    setTimeout(() => {
+        document.getElementById('bank-setup-modal').classList.add('open');
+    }, 800);
+
+})();
+
+// Updated close function
+function closeBankModal() {
+    const modal = document.getElementById('bank-setup-modal');
+    const dontShowCheckbox = document.getElementById('dont-show-again');
+    
+    modal.classList.remove('open');
+
+    const userId = <?php echo json_encode($_SESSION['user']['id'] ?? ''); ?>;
+    const dontShowKey = 'bankModalDontShow_' + userId;
+    const skipKey = 'bankModalSkipped_' + userId;
+
+    // Mark as skipped for THIS user only
+    sessionStorage.setItem(skipKey, 'true');
+
+    // If "Don't show again" is checked → save permanently
+    if (dontShowCheckbox && dontShowCheckbox.checked) {
+        localStorage.setItem(dontShowKey, 'true');
+    }
+}
+
+// Open section from URL query param (e.g. ?section=profile)
+(function checkUrlSection() {
+  const params = new URLSearchParams(window.location.search);
+  const section = params.get('section');
+  if (section && document.getElementById('section-' + section)) {
+    showSection(section);
+  }
+})();
 </script>
 <?php if(isset($_SESSION['message'])): ?>
   <script>showToast("<?php echo $_SESSION['message']; ?>");</script>
   <?php unset($_SESSION['message']); ?>
 <?php endif; ?>
 
-<?php if(!empty($errors)): ?>
+<?php if(!empty($errors['profile'])): ?>
   <script>
     showSection('profile');
   </script>

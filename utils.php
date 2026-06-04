@@ -38,8 +38,13 @@ function old(array $old, string $key, string $fallback = ''): string {
 // Helper to display field error
 function fieldError(array $errors, string $key, ?int $index = null, ?string $subKey = null): string {
     if ($index !== null && $subKey !== null) {
+        // e.g. $errors['items'][0]['quantity'][0]
         $message = $errors[$key][$index][$subKey][0] ?? null;
+    } elseif ($subKey !== null) {
+        // e.g. $errors['profile']['last_name'][0]
+        $message = $errors[$key][$subKey][0] ?? null;
     } else {
+        // e.g. $errors['last_name'][0]
         $message = $errors[$key][0] ?? null;
     }
 

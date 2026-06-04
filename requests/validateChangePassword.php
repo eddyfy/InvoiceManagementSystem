@@ -14,23 +14,29 @@ function validateChangePassword(object $user): array{
         header('Location: ' . Config::get('baseProjectFolder') . '/dashboard');
         exit();
     } else if (!password_verify($currentPassword, $user->password)) {
-        $errors["current_password"][] = "Current password is incorrect.";
+        $errors['profile']["current_password"][] = "Current password is incorrect.";
         $_SESSION['errors'] = $errors;
         $_SESSION['message'] = "Current password is incorrect.";
         header('Location: ' . Config::get('baseProjectFolder') . '/dashboard');
         exit();
     }else{
         if (empty($newPassword)) {
-            $errors["new_password"][] = "New password is required.";
+            $errors['profile']["new_password"][] = "New password is required.";
         } else if (isShorterThan($newPassword, 6)) {
-            $errors["new_password"][] = "New password must be at least 6 characters.";
+            $errors['profile']["new_password"][] = "New password must be at least 6 characters.";
         } else if (isLongerThan($newPassword, 255)) {
-            $errors["new_password"][] = "New password must be less than 255 characters.";
+            $errors['profile']["new_password"][] = "New password must be less than 255 characters.";
         } else if ($newPassword === $currentPassword) {
-            $errors["new_password"][] = "New password must be different from the current password.";
+            $errors['profile']["new_password"][] = "New password must be different from the current password.";
         }
     }
-    validateConfirmPassword($confirmPassword, $newPassword, $errors);
+
+    if(empty($confirmPassword)){
+        $errors['profile']["confirm_password"][] = "Confirm Password is required.";
+    }else if($confirmPassword !== $newPassword){
+        $errors['profile']["confirm_password"][] = "Passwords do not match.";        
+    }
+
     if(!empty($errors)){
         $_SESSION['errors'] = $errors;
         header('Location: ' . Config::get('baseProjectFolder') . '/dashboard');

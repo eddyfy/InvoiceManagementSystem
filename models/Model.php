@@ -28,7 +28,6 @@ abstract class Model{
         $data['id'] = $id; 
         
         return $this->hydrate($data); // Use the hydrate method to create and return an object with the data    
-
     } 
 
     function hydrate(array $data): object {

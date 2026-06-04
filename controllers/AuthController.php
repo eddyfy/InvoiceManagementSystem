@@ -37,7 +37,11 @@ class AuthController{
                 'id' => $user->id,
                 'firstname' => $user->firstname,
                 'lastname' => $user->lastname,
-                'email' => $user->email
+                'email' => $user->email,
+                'has_bank_details' => $user->has_bank_details,
+                'bank_account_name' => $user->bank_account_name,
+                'bank_account_number' => $user->bank_account_number,
+                'bank_name' => $user->bank_name
             ];
             $_SESSION['message'] = "Login successful! Welcome back, {$user->firstname}."; // Store a success message in the session to display it on the invoice form page
             if(isset($_SESSION['previous_page']) && $_SESSION['previous_page'] === "invoice_form"){

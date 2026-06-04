@@ -308,12 +308,26 @@ td input:focus{border-color:var(--color-blue);box-shadow:0 0 0 3px var(--color-b
   <div class="card">
     <p class="section-title">Customer &amp; Invoice Info</p>
 
-    <div class="payment-details">
-      <p>Send payments to:</p>
-      <p>0284413444</p>
-      <p>WEMA BANK</p>
-      <p>Oretade Olaoluwakitan</p>
-    </div>
+    <?php if(isset($_SESSION['user'])): ?>
+      <div class="payment-details">
+        <p>Send payments to:</p>
+        <?php if($_SESSION['user']['has_bank_details']): ?> 
+        <p><?php echo htmlspecialchars($_SESSION['user']['bank_account_number']); ?></p>
+        <p><?php echo strtoupper(htmlspecialchars($_SESSION['user']['bank_name'])); ?></p>
+        <p><?php echo ucwords(htmlspecialchars($_SESSION['user']['bank_account_name'])); ?></p>
+     <?php else: ?>
+      <div style="display:flex;align-items:flex-start;gap:8px;padding:12px 14px;border:1px solid var(--color-border);border-radius:var(--radius-md);margin-top:4px;">
+        <svg style="width:14px;height:14px;stroke:var(--color-text-secondary);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0;margin-top:2px;" viewBox="0 0 24 24">
+          <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+        </svg>
+        <p style="font-size:13px;color:var(--color-text-secondary);line-height:1.5;margin:0;">
+          Bank details not set up yet.
+          <a href="<?php echo Config::get('baseProjectFolder'); ?>/dashboard?section=profile" style="color:var(--color-text-primary);font-weight:500;text-decoration:underline;text-underline-offset:2px;">Set them up in your profile →</a>
+        </p>
+      </div>
+    <?php endif; ?>
+      </div>
+    <?php endif; ?>
 
     <div class="grid3" style="margin-bottom:14px">
       <div>

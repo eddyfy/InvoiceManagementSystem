@@ -3,6 +3,8 @@ require_once './autoloader.php';
 require_once './requests/validateUpdateProfile.php';
 require_once './requests/validateChangePassword.php';
 require_once './requests/validators.php';
+require_once './requests/validateBankDetails.php';
+
 
 class UserController{
     function updateProfile(){   
@@ -11,16 +13,24 @@ class UserController{
         $userModel = new User();
         try {
             $userModel->pdo->beginTransaction();
-            $stmt = $userModel->pdo->prepare("UPDATE users SET firstname = :firstname, lastname = :lastname, email = :email WHERE id = :id");
+            $stmt = $userModel->pdo->prepare("UPDATE users SET firstname = :firstname, lastname = :lastname, email = :email, bank_account_number = :bank_account_number, bank_account_name = :bank_account_name, bank_name = :bank_name WHERE id = :id");
             $stmt->execute([
                 ':firstname' => $validated['firstname'],
                 ':lastname' => $validated['lastname'],
                 ':email' => $validated['email'],
+                ':bank_account_number' => $validated['bank_account_number'],
+                ':bank_account_name' => $validated['bank_account_name'],
+                ':bank_name' => $validated['bank_name'],
                 ':id' => $validated['user_id']
             ]);
+
             $_SESSION['user']['firstname'] = $validated['firstname'];
             $_SESSION['user']['lastname'] = $validated['lastname'];
             $_SESSION['user']['email'] = $validated['email'];
+            $_SESSION['user']['bank_account_number'] = $validated['bank_account_number'];
+            $_SESSION['user']['bank_account_name'] = $validated['bank_account_name'];
+            $_SESSION['user']['bank_name'] = $validated['bank_name'];  
+            $_SESSION['user']['has_bank_details'] = !empty($validated['bank_account_number']) && !empty($validated['bank_account_name']) && !empty($validated['bank_name']);
             $userModel->pdo->commit();
             $_SESSION['message'] = "Profile updated successfully.";
             header('Location: ' . Config::get('baseProjectFolder') . '/dashboard');
@@ -58,8 +68,6 @@ class UserController{
         }
     }
 
-
-
     function deleteAccount(){
 
             $userModel = new User();
@@ -78,5 +86,33 @@ class UserController{
                 error_log("Database error: " . $e->getMessage());
                 echo "An error occurred while deleting the account.";
             }
+    }
+
+    function saveBankDetails(){
+        $userModel = new User();
+        $userId = $_SESSION['user']['id'];
+        $validated = validateBankDetails();
+        try {
+            $userModel->pdo->beginTransaction();
+            $stmt = $userModel->pdo->prepare("UPDATE users SET bank_account_number = :bank_account_number, bank_account_name = :bank_account_name, bank_name = :bank_name WHERE id = :id");
+            $stmt->execute([
+                ':bank_account_number' => $validated['bank_account_number'],
+                ':bank_account_name' => $validated['bank_account_name'],
+                ':bank_name' => $validated['bank_name'],
+                ':id' => $userId
+            ]);
+            $_SESSION['user']['bank_account_number'] = $validated['bank_account_number'];
+            $_SESSION['user']['bank_account_name'] = $validated['bank_account_name'];
+            $_SESSION['user']['bank_name'] = $validated['bank_name'];
+            $_SESSION['user']['has_bank_details'] = true;
+            $userModel->pdo->commit();
+            $_SESSION['message'] = "Bank details added successfully.";
+            header('Location: ' . Config::get('baseProjectFolder') . '/dashboard');
+            exit();
+        } catch (PDOException $e) {
+            $userModel->pdo->rollback();
+            error_log("Database error: " . $e->getMessage());
+            echo "An error occurred while saving bank details.";
+        }
     }
 }

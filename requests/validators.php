@@ -113,3 +113,129 @@ function validateCustomerName(string $customer_name, array &$errors): void{
             }
         }
 }
+
+function validateBankAccountNumber(string $bank_account_number, array &$errors): void{
+    if(empty($bank_account_number)){
+        $errors["bank_account_number"][] = "Bank account number is required.";
+    }else{
+        if(!ctype_digit($bank_account_number)){
+            $errors["bank_account_number"][] = "Bank account number must contain only digits.";
+        }
+        if(strlen($bank_account_number) !== 10){
+            $errors["bank_account_number"][] = "Bank account number must be exactly 10 digits.";
+        }
+    }
+}
+
+function validateBankAccountName(string $bank_account_name, array &$errors): void {
+    if (empty($bank_account_name)) {
+        $errors["bank_account_name"][] = "Bank account name is required.";
+    } else {
+        // Only letters, spaces, hyphens and apostrophes (for names like O'Brien or Obi-Wan)
+        if (!preg_match("/^[a-zA-Z\s\-']+$/", $bank_account_name)) {
+            $errors["bank_account_name"][] = "Bank account name must contain letters only.";
+        }
+        if (strlen($bank_account_name) < 2) {
+            $errors["bank_account_name"][] = "Bank account name must be at least 2 characters.";
+        }
+        if (isLongerThan($bank_account_name, 255)) {
+            $errors["bank_account_name"][] = "Bank account name must be less than 255 characters.";
+        }
+    }
+}
+
+function validateBankName(string $bank_name, array &$errors): void {
+    if (empty($bank_name)) {
+        $errors["bank_name"][] = "Bank name is required.";
+    } else {
+        // Only letters, spaces, hyphens and ampersands (for names like Zenith Bank or First & Trust)
+        if (!preg_match("/^[a-zA-Z\s\-&]+$/", $bank_name)) {
+            $errors["bank_name"][] = "Bank name must contain letters only.";
+        }
+        if (strlen($bank_name) < 2) {
+            $errors["bank_name"][] = "Bank name must be at least 2 characters.";
+        }
+        if (isLongerThan($bank_name, 100)) {
+            $errors["bank_name"][] = "Bank name must be less than 100 characters.";
+        }
+    }
+}
+
+function validateProfileFirstName(string $firstname, array &$errors): void{
+      if (empty($firstname)) {
+                $errors['profile']["firstname"][] = "First name is required.";
+            }else{
+                if (isLongerThan($firstname, 100)) {
+                    $errors['profile']["firstname"][] = "First name must be less than 100 characters.";
+                }
+            }
+}
+
+function validateProfileLastName(string $lastname, array &$errors): void{
+       if (empty($lastname)) {
+                $errors['profile']["lastname"][] = "Last name is required.";
+            }else{
+                if (isLongerThan($lastname, 100)) {
+                    $errors['profile']["lastname"][] = "Last name must be less than 100 characters.";
+                }
+            }
+}
+
+function validateProfileEmail(string $email, array &$errors): void {
+    if (empty($email)) {
+        $errors['profile']["email"][] = "Email is required.";
+    } else {
+        if (isLongerThan($email, 150)) {
+            $errors['profile']["email"][] = "Email must be less than 150 characters.";
+        }
+        if (!isEmail($email)) {
+            $errors['profile']["email"][] = "Invalid email format.";
+        }
+    }
+}
+function validateProfileBankAccountNumber(string $bank_account_number, array &$errors): void{
+    if(empty($bank_account_number)){
+        $errors['profile']["bank_account_number"][] = "Bank account number is required."; // Ensure the key exists for consistent error handling
+    }else{
+        if(!ctype_digit($bank_account_number)){
+            $errors['profile']["bank_account_number"][] = "Bank account number must contain only digits.";
+        }
+        if(strlen($bank_account_number) !== 10){
+            $errors['profile']["bank_account_number"][] = "Bank account number must be exactly 10 digits.";
+        }
+    }
+}
+
+function validateProfileBankAccountName(string $bank_account_name, array &$errors): void {
+    if (empty($bank_account_name)) {
+        $errors['profile']["bank_account_name"][] = "Bank account name is required.";
+    } else {
+        // Only letters, spaces, hyphens and apostrophes (for names like O'Brien or Obi-Wan)
+        if (!preg_match("/^[a-zA-Z\s\-']+$/", $bank_account_name)) {
+            $errors['profile']["bank_account_name"][] = "Bank account name must contain letters only.";
+        }
+        if (strlen($bank_account_name) < 2) {
+            $errors['profile']["bank_account_name"][] = "Bank account name must be at least 2 characters.";
+        }
+        if (isLongerThan($bank_account_name, 255)) {
+            $errors['profile']["bank_account_name"][] = "Bank account name must be less than 255 characters.";
+        }
+    }
+}
+
+function validateProfileBankName(string $bank_name, array &$errors): void {
+    if(empty($bank_name)){
+        $errors['profile']["bank_name"][] = "Bank name is required.";
+    }else{
+        // Only letters, spaces, hyphens and ampersands (for names like Zenith Bank or First & Trust)
+        if (!preg_match("/^[a-zA-Z\s\-&]+$/", $bank_name)) {
+            $errors['profile']["bank_name"][] = "Bank name must contain letters only.";
+        }
+        if (strlen($bank_name) < 2) {
+            $errors['profile']["bank_name"][] = "Bank name must be at least 2 characters.";
+        }
+        if (isLongerThan($bank_name, 100)) {
+            $errors['profile']["bank_name"][] = "Bank name must be less than 100 characters.";
+        }
+    }
+}

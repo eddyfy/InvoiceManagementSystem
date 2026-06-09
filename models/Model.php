@@ -1,5 +1,11 @@
 <?php
-require_once './DBH.php'; // Include the database connection handler to enable database interactions
+namespace App\Models;
+use App\DBH;
+use PDO;
+use PDOException;
+use RuntimeException;
+
+
 abstract class Model{
 
     public PDO $pdo;

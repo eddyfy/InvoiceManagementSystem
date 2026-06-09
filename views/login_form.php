@@ -1,6 +1,6 @@
 <?php
 declare(strict_types=1);
-
+use App\Config;
 /** @var array $errors */
 /** @var array $old */
 ?>
@@ -342,7 +342,7 @@ declare(strict_types=1);
 
     <div class="field <?php echo isset($errors['email']) ? ' has-error' : ''; ?>" id="field-email">
       <label for="email">Email address</label>
-      <input type="email" name="email"id="email" placeholder="e.g. john.doe@example.com" autocomplete="email"  value="<?php echo $old['email'] ?? ''; ?>"/>
+      <input type="email" name="email"id="email" placeholder="e.g. john.doe@example.com" autocomplete="email"  value="<?php echo $old['email'] ?? ''; ?>" required/>
       <!-- <div class="error-msg">Please enter a valid email address.</div> -->
        <?php
         if(isset($errors['email'])){
@@ -357,7 +357,7 @@ declare(strict_types=1);
     <div class="field <?php echo isset($errors['password']) ? ' has-error' : ''; ?>" id="field-password">
       <label for="password">Password</label>
       <div class="password-wrap">
-        <input type="password" name="password"id="password" placeholder="Enter your password" autocomplete="current-password" />
+        <input type="password" name="password"id="password" placeholder="Enter your password" autocomplete="current-password" required />
         <button class="toggle-pw" type="button" onclick="togglePw()" title="Show / hide password" id="pw-toggle">
           <svg id="eye-icon" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
         </button>

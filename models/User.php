@@ -1,6 +1,8 @@
 <?php
  // Include the database connection handler to enable database interactions
-require "./models/Model.php";
+ namespace App\Models;
+ use PDOException;
+ use RuntimeException;
 class User extends Model{
 
     protected string $tableName = 'users';

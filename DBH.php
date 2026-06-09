@@ -1,7 +1,9 @@
 <?php 
- // Include the configuration file to load environment variables
+declare(strict_types=1);
 
-require 'autoloader.php'; // Include the autoloader to automatically load class files when they are instantiated
+namespace App;
+use PDO;
+use PDOException;
 
 class DBH {
     private static ?PDO $pdo = null; // store the connection

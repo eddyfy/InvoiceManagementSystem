@@ -1,6 +1,7 @@
 <?php
-ini_set('display_errors', 1);
-error_reporting(E_ALL);
+namespace App\Migrations;
+use App\DBH;
+use PDOException;
 require_once  __DIR__ . '/../autoloader.php';
 $stmt = "CREATE TABLE IF NOT EXISTS invoice_items (
     id INT AUTO_INCREMENT PRIMARY KEY,

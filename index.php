@@ -1,18 +1,21 @@
 <?php
 declare(strict_types=1);
 // index.php
-ini_set('display_errors', 1);
-error_reporting(E_ALL);
-require_once 'utils.php'; // Include utility functions for input sanitization and authentication checks
-require_once 'Config.php'; // Include the configuration file to load environment variables
+// Include utility functions for input sanitization and authentication checks
+// Include the configuration file to load environment variables
 session_start(); // Start the session to manage user data across requests
 
 require_once 'autoloader.php'; // Include the autoloader to automatically load class files when they are instantiated
 
+
+use App\Config;
+use App\Includes\Router;
+use App\Controllers\HomeController;
+use App\Controllers\AuthController;
+use App\Controllers\InvoiceController;
+use App\Controllers\UserController;
+
 $path = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
-
-
-require_once 'includes/Router.inc.php';
 
 $router = new Router(); // Create a new instance of the Router class to manage the application's routes
 

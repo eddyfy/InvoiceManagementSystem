@@ -1,8 +1,10 @@
 <?php
 declare(strict_types=1);
-ini_set('display_errors', 1);
-error_reporting(E_ALL);
+namespace App\Migrations;
 require_once  __DIR__ . '/../autoloader.php';
+
+use App\DBH;
+use PDOException;
 
 $stmt = "CREATE TABLE IF NOT EXISTS users (
     id INT AUTO_INCREMENT PRIMARY KEY,

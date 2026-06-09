@@ -1,6 +1,7 @@
 <?php
 declare(strict_types=1);
-// includes/Router.inc.php
+namespace App\Includes;
+use Closure;
 
 class Router{
     private $routes = []; //contains all the active routes iin the application key is path and value is the callback function

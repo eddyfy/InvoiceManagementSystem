@@ -1,4 +1,6 @@
 <?php
+namespace App\Models;
+use PDO;
 class InvoiceItem extends Model{
     protected string $tableName = 'invoice_items';
     public int $id;

@@ -1,5 +1,8 @@
 <?php
 declare(strict_types=1);
+namespace App\Controllers;
+use App\Models\Invoice;
+use App\Utils;  
 
 class HomeController{
     public function index(): void {
@@ -13,7 +16,7 @@ class HomeController{
     }
     public function dashboard(): void{
 
-        requireAuth();
+        Utils::requireAuth();
         unset($_SESSION['previous_page']);
         $userId = $_SESSION['user']['id'];
         $invoiceModel = new Invoice();

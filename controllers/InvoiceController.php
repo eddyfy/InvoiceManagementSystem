@@ -1,10 +1,15 @@
 <?php
 declare(strict_types=1);
-// root/controllers/InvoiceController.php
-require_once './Config.php'; // Include the configuration file to load environment variables
-require_once './autoloader.php';
-require_once './requests/validators.php';
-require_once './requests/validateInvoice.php';
+namespace App\Controllers;
+
+use App\Models\Invoice;
+use App\Models\InvoiceItem;
+use App\Config;
+use App\DBH;
+use App\Requests\ValidateInvoice;
+use Exception;
+use PDOException;
+
 class InvoiceController{
     public function showInvoiceForm(): void {
         $_SESSION['csrf_token'] = password_hash(bin2hex(random_bytes(32)), PASSWORD_DEFAULT);
@@ -41,7 +46,7 @@ class InvoiceController{
                 exit();
             }
 
-            $validated = validateInvoice();
+            $validated = ValidateInvoice::validate();
 
             $invoiceModel = new Invoice();
             $invoiceItemModel = new InvoiceItem();
@@ -146,7 +151,7 @@ class InvoiceController{
     }
     public function updateInvoice(array $params):void{
         $invoiceId = (int) ($params['id']);
-        $validated = validateInvoice();
+        $validated = ValidateInvoice::validate();
         $status = $_POST['status'] ?? 'draft';
         $invoiceModel = new Invoice();
         $invoiceItemModel = new InvoiceItem();

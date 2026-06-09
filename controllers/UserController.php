@@ -1,15 +1,18 @@
 <?php
-require_once './autoloader.php';
-require_once './requests/validateUpdateProfile.php';
-require_once './requests/validateChangePassword.php';
-require_once './requests/validators.php';
-require_once './requests/validateBankDetails.php';
+namespace App\Controllers;
+use App\Config;
+use App\Models\User;
+use App\Requests\ValidateUpdateProfile;
+use App\Requests\ValidateChangePassword;
+use App\Requests\ValidateBankDetails;
+
+use PDOException;
 
 
 class UserController{
     function updateProfile(){   
         
-        $validated = validateUpdateProfile();
+        $validated = ValidateUpdateProfile::validate();
         $userModel = new User();
         try {
             $userModel->pdo->beginTransaction();
@@ -47,7 +50,7 @@ class UserController{
         $user = $userModel->findByEmail($_SESSION['user']['email']) ?? die("User not found.");
         $userId = $_SESSION['user']['id'];
 
-        $validated = validateChangePassword($user);
+        $validated = ValidateChangePassword::validate($user);
 
         try {
             $userModel->pdo->beginTransaction();
@@ -91,7 +94,8 @@ class UserController{
     function saveBankDetails(){
         $userModel = new User();
         $userId = $_SESSION['user']['id'];
-        $validated = validateBankDetails();
+        ValidateBankDetails::validate();
+        $validated = ValidateBankDetails::validate();
         try {
             $userModel->pdo->beginTransaction();
             $stmt = $userModel->pdo->prepare("UPDATE users SET bank_account_number = :bank_account_number, bank_account_name = :bank_account_name, bank_name = :bank_name WHERE id = :id");

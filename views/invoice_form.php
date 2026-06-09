@@ -1,17 +1,12 @@
 <?php 
 declare(strict_types=1);
-
-require_once "./autoloader.php";
-require_once "./utils.php";
-// ini_set('display_errors', 1);
-// error_reporting(E_ALL);
+use App\Config;
+use App\Utils;
 
 /** @var string $nextInvoiceNumber */
 /** @var array $errors */
 /** @var array $old */
-// var_dump($_SESSION['invoice_draft']);
-// var_dump($old);
-// $old = array_merge($_SESSION['invoice_draft'] ?? [], $old);
+
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -333,16 +328,16 @@ td input:focus{border-color:var(--color-blue);box-shadow:0 0 0 3px var(--color-b
       <div>
         <label>Invoice #</label>
         <input type="text" id="inv-num" name="invoice_number"
-          value="<?php echo old($old, 'invoice_number', $nextInvoiceNumber); ?>"
+          value="<?php echo Utils::old($old, 'invoice_number', $nextInvoiceNumber); ?>"
           class="<?php echo isset($errors['invoice_number']) ? 'error' : ''; ?>" />
-        <?php echo fieldError($errors, 'invoice_number'); ?>
+        <?php echo Utils::fieldError($errors, 'invoice_number'); ?>
       </div>
       <div>
         <label>Date</label>
         <input type="date" id="inv-date" name="invoice_date"
-          value="<?php echo old($old, 'invoice_date'); ?>"
+          value="<?php echo Utils::old($old, 'invoice_date'); ?>"
           class="<?php echo isset($errors['invoice_date']) ? 'error' : ''; ?>" />
-        <?php echo fieldError($errors, 'invoice_date'); ?>
+        <?php echo Utils::fieldError($errors, 'invoice_date'); ?>
       </div>
     </div>
 
@@ -350,18 +345,18 @@ td input:focus{border-color:var(--color-blue);box-shadow:0 0 0 3px var(--color-b
       <div>
         <label>Customer name</label>
         <input type="text" id="cust-name" name="customer_name"
-          value="<?php echo old($old, 'customer_name'); ?>"
+          value="<?php echo Utils::old($old, 'customer_name'); ?>"
           placeholder="e.g. John Doe"
           class="<?php echo isset($errors['customer_name']) ? 'error' : ''; ?>" />
-        <?php echo fieldError($errors, 'customer_name'); ?>
+        <?php echo Utils::fieldError($errors, 'customer_name'); ?>
       </div>
       <div>
         <label>Email</label>
         <input type="email" id="cust-contact" name="customer_email"
-          value="<?php echo old($old, 'customer_email'); ?>"
+          value="<?php echo Utils::old($old, 'customer_email'); ?>"
           placeholder="e.g. john.doe@example.com"
           class="<?php echo isset($errors['customer_email']) ? 'error' : ''; ?>" />
-        <?php echo fieldError($errors, 'customer_email'); ?>
+        <?php echo Utils::fieldError($errors, 'customer_email'); ?>
       </div>
     </div>
   </div>
@@ -371,7 +366,7 @@ td input:focus{border-color:var(--color-blue);box-shadow:0 0 0 3px var(--color-b
     <p class="section-title">Items</p>
     <?php if (!empty($errors['items_general'])): ?>
       <div class="field-error" style="margin-bottom:10px;">
-        <?php echo fieldError($errors, 'items_general'); ?>
+        <?php echo Utils::fieldError($errors, 'items_general'); ?>
       </div>
     <?php endif; ?>
     <table id="items-table">
@@ -391,11 +386,11 @@ td input:focus{border-color:var(--color-blue);box-shadow:0 0 0 3px var(--color-b
     <div class="totals">
       <div class="total-row"><span>Subtotal</span><span id="subtotal">₦0.00</span></div>
       <div class="total-row">
-        <span>Tax <input type="number" id="tax-rate" name="tax_rate" value="<?php echo old($old, 'tax_rate', '0'); ?>" min="0" max="100" oninput="recalc()"> %</span>
+        <span>Tax <input type="number" id="tax-rate" name="tax_rate" value="<?php echo Utils::old($old, 'tax_rate', '0'); ?>" min="0" max="100" oninput="recalc()"> %</span>
         <span id="tax-amt">₦0.00</span>
       </div>
       <div class="total-row">
-        <span>Discount <input type="number" id="discount" name="discount" id="discount-input" value="<?php echo old($old, 'discount', '0'); ?>" min="0" oninput="recalc()"> ₦</span>
+        <span>Discount <input type="number" id="discount" name="discount" id="discount-input" value="<?php echo Utils::old($old, 'discount', '0'); ?>" min="0" oninput="recalc()"> ₦</span>
         <span id="discount-amt">₦0.00</span>
       </div>
       <div class="total-row grand"><span>Total</span><span id="grand-total">₦0.00</span></div>
@@ -405,7 +400,7 @@ td input:focus{border-color:var(--color-blue);box-shadow:0 0 0 3px var(--color-b
   <!-- NOTES -->
   <div class="card">
     <p class="section-title">Notes</p>
-    <textarea id="notes" name="notes" rows="3" placeholder="e.g. Thank you for your purchase!"><?php echo old($old, 'notes'); ?></textarea>
+    <textarea id="notes" name="notes" rows="3" placeholder="e.g. Thank you for your purchase!"><?php echo Utils::old($old, 'notes'); ?></textarea>
   </div>
 
   <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>" />

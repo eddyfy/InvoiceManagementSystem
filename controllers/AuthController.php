@@ -1,13 +1,12 @@
 <?php 
 declare(strict_types=1);
-// require_once './Config.php'; // Include the configuration file to load environment variables
-// require_once './utils.php';
-// require_once './DBH.php'; // Include the database connection handler
-require_once './autoloader.php';
-require_once './requests/validators.php';
-require_once './requests/validateLogin.php';
-require_once './requests/validateSignup.php';
 
+namespace App\Controllers;
+use App\Models\User;
+use App\Config;
+use App\Requests\ValidateLogin;
+use App\Requests\ValidateSignup;
+use RuntimeException;
 
 class AuthController{
 
@@ -20,7 +19,7 @@ class AuthController{
     }
     public function handleLogin(): void {
         
-        $validated = validateLogin();
+        $validated = ValidateLogin::validate();
 
         $userModel = new User();
         $user = $userModel->findByEmail($validated['email']);
@@ -71,7 +70,7 @@ class AuthController{
     }
     public function handleSignup(): void { 
 
-        $validated = validateSignup();
+        $validated = ValidateSignup::validate();
         $userModel = new User();
         try{
                 $user = $userModel->create([
@@ -83,7 +82,7 @@ class AuthController{
 
         }catch (RuntimeException $e) {
             if ($e->getMessage() === 'duplicate') {
-                $_SESSION['errors'] = ['email' => ['Email already exists. Please use a different email.']]; // Store the error message in the session to display it on the form 
+                $_SESSION['errors'] = ['email' => ['An account with this email already exists. Please use a different email.']]; // Store the error message in the session to display it on the form 
                 $_SESSION['old'] = ['firstname' => $validated['firstname'], 'lastname' => $validated['lastname'], 'email' => $validated['email']];
                 header('Location: ' . Config::get('baseProjectFolder') . '/signup');
                 exit();

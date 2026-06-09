@@ -1,33 +1,39 @@
 <?php
-function validateBankDetails(){
-    $errors = [];
-    $bank_account_number = trim($_POST['bank_account_number'] ?? '');
-    $bank_account_name = trim($_POST['bank_account_name'] ?? '');
-    $bank_name = trim($_POST['bank_name'] ?? '');
+declare(strict_types=1);
+namespace App\Requests;
 
-    // validation for bank account number
-    validateBankAccountNumber($bank_account_number, $errors);
-    // validation for bank account name
-    validateBankAccountName($bank_account_name, $errors);
-    // validation for bank name
-    validateBankName($bank_name, $errors);
+use App\Config;
+class ValidateBankDetails{
+    public static function validate(): array{
+        $errors = [];
+        $bank_account_number = trim($_POST['bank_account_number'] ?? '');
+        $bank_account_name = trim($_POST['bank_account_name'] ?? '');
+        $bank_name = trim($_POST['bank_name'] ?? '');
 
-    // echo "Errors: " . json_encode($errors); // Debugging line to check errors
-    if(!empty($errors)) {
-        $_SESSION['errors'] = $errors;
-        $_SESSION['old'] = [
+        // validation for bank account number
+        Validators::validateBankAccountNumber($bank_account_number, $errors);
+        // validation for bank account name
+        Validators::validateBankAccountName($bank_account_name, $errors);
+        // validation for bank name
+        Validators::validateBankName($bank_name, $errors);
+
+        // echo "Errors: " . json_encode($errors); // Debugging line to check errors
+        if(!empty($errors)) {
+            $_SESSION['errors'] = $errors;
+            $_SESSION['old'] = [
+                'bank_account_number' => $bank_account_number,
+                'bank_account_name' => $bank_account_name,
+                'bank_name' => $bank_name
+            ];
+            header('Location: ' . Config::get('baseProjectFolder') . '/dashboard');
+            exit();
+        }
+        
+        return [
             'bank_account_number' => $bank_account_number,
-            'bank_account_name' => $bank_account_name,
-            'bank_name' => $bank_name
+            'bank_account_name' => strtolower($bank_account_name),
+            'bank_name' => strtolower($bank_name),
+            'errors' => $errors
         ];
-        header('Location: ' . Config::get('baseProjectFolder') . '/dashboard');
-        exit();
     }
-
-    return [
-        'bank_account_number' => $bank_account_number,
-        'bank_account_name' => strtolower($bank_account_name),
-        'bank_name' => strtolower($bank_name),
-        'errors' => $errors
-    ];
 }

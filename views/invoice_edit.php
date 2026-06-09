@@ -1,7 +1,7 @@
 <?php
-require_once "./autoloader.php";
-require_once "./utils.php";
-requireAuth();
+use App\Config;
+use App\Utils;
+Utils::requireAuth();
 
 /** @var array $invoice */
 /** @var array $items */
@@ -225,14 +225,14 @@ td input:focus{border-color:var(--color-blue);box-shadow:0 0 0 3px var(--color-b
         <input type="text" name="invoice_number"
           value="<?php echo htmlspecialchars($invoice['invoice_number']); ?>"
           class="<?php echo isset($errors['invoice_number']) ? 'error' : ''; ?>" />
-        <?php echo fieldError($errors, 'invoice_number'); ?>
+        <?php echo Utils::fieldError($errors, 'invoice_number'); ?>
       </div>
       <div>
         <label>Date</label>
         <input type="date" name="invoice_date"
           value="<?php echo htmlspecialchars($invoice['invoice_date']); ?>"
           class="<?php echo isset($errors['invoice_date']) ? 'error' : ''; ?>" />
-        <?php echo fieldError($errors, 'invoice_date'); ?>
+        <?php echo Utils::fieldError($errors, 'invoice_date'); ?>
       </div>
       <div>
         <label>Status</label>
@@ -242,7 +242,7 @@ td input:focus{border-color:var(--color-blue);box-shadow:0 0 0 3px var(--color-b
           <option value="paid"    <?php echo $invoice['status'] === 'paid'    ? 'selected' : ''; ?>>Paid</option>
           <option value="overdue" <?php echo $invoice['status'] === 'overdue' ? 'selected' : ''; ?>>Overdue</option>
         </select>
-        <?php echo fieldError($errors, 'status'); ?>
+        <?php echo Utils::fieldError($errors, 'status'); ?>
       </div>
     </div>
 
@@ -253,7 +253,7 @@ td input:focus{border-color:var(--color-blue);box-shadow:0 0 0 3px var(--color-b
           value="<?php echo htmlspecialchars($invoice['customer_name']); ?>"
           placeholder="e.g. John Doe"
           class="<?php echo isset($errors['customer_name']) ? 'error' : ''; ?>" />
-        <?php echo fieldError($errors, 'customer_name'); ?>
+        <?php echo Utils::fieldError($errors, 'customer_name'); ?>
       </div>
       <div>
         <label>Email</label>
@@ -261,7 +261,7 @@ td input:focus{border-color:var(--color-blue);box-shadow:0 0 0 3px var(--color-b
           value="<?php echo htmlspecialchars($invoice['customer_email']); ?>"
           placeholder="e.g. john.doe@example.com"
           class="<?php echo isset($errors['customer_email']) ? 'error' : ''; ?>" />
-        <?php echo fieldError($errors, 'customer_email'); ?>
+        <?php echo Utils::fieldError($errors, 'customer_email'); ?>
       </div>
     </div>
   </div>
@@ -271,7 +271,7 @@ td input:focus{border-color:var(--color-blue);box-shadow:0 0 0 3px var(--color-b
     <p class="section-title">Items</p>
     <?php if (!empty($errors['items_general'])): ?>
       <div class="field-error" style="margin-bottom:10px;">
-        <?php echo fieldError($errors, 'items_general'); ?>
+        <?php echo Utils::fieldError($errors, 'items_general'); ?>
       </div>
     <?php endif; ?>
 

@@ -1,8 +1,8 @@
 <?php
-require_once "./autoloader.php";
-require_once "./utils.php";
-requireAuth(); // Ensure the user is authenticated before accessing the dashboard
 
+use App\Utils;
+use App\Config;
+Utils::requireAuth(); // Ensure the user is authenticated before accessing the dashboard
 /** @var array $stats */
 /** @var array $recentInvoices */
 /** @var array $allInvoices */
@@ -412,17 +412,17 @@ input:focus,select.styled:focus{outline:none;border-color:var(--color-blue);box-
         <form  action="<?php echo Config::get('baseProjectFolder'); ?>/profile/update" method="POST" id="profile-form" class="updateInfo card">
             <div class="form-grid" >
 
-              <div class="field <?php echo isset($errors['profile']['firstname']) ? 'error' : ''; ?>"><label>First name</label><input type="text" name="firstname" id="fname" value="<?php echo old($old, 'firstname', htmlspecialchars($_SESSION['user']['firstname'])); ?>"/> <?php echo fieldError($errors, 'profile', null, 'firstname'); ?> </div>
+              <div class="field <?php echo isset($errors['profile']['firstname']) ? 'error' : ''; ?>"><label>First name</label><input type="text" name="firstname" id="fname" value="<?php echo Utils::old($old, 'firstname', htmlspecialchars($_SESSION['user']['firstname'])); ?>"/> <?php echo Utils::fieldError($errors, 'profile', null, 'firstname'); ?> </div>
              
-              <div class="field <?php echo isset($errors['profile']['lastname']) ? 'error' : ''; ?>"><label>Last name</label><input type="text" name="lastname" id="lname" value="<?php echo old($old, 'lastname', htmlspecialchars($_SESSION['user']['lastname'])); ?>"/><?php echo fieldError($errors, 'profile', null, 'lastname'); ?></div>
+              <div class="field <?php echo isset($errors['profile']['lastname']) ? 'error' : ''; ?>"><label>Last name</label><input type="text" name="lastname" id="lname" value="<?php echo Utils::old($old, 'lastname', htmlspecialchars($_SESSION['user']['lastname'])); ?>"/><?php echo Utils::fieldError($errors, 'profile', null, 'lastname'); ?></div>
               
-              <div class="field <?php echo isset($errors['profile']['email']) ? 'error' : ''; ?>"><label>Email address</label><input type="email" name="email" id="email" value="<?php echo old($old, 'email', htmlspecialchars($_SESSION['user']['email'])); ?>"/> <?php echo fieldError($errors, 'profile', null, 'email'); ?></div>
+              <div class="field <?php echo isset($errors['profile']['email']) ? 'error' : ''; ?>"><label>Email address</label><input type="email" name="email" id="email" value="<?php echo Utils::old($old, 'email', htmlspecialchars($_SESSION['user']['email'])); ?>"/> <?php echo Utils::fieldError($errors, 'profile', null, 'email'); ?></div>
 
-              <div class="field full <?php echo isset($errors['profile']['bank_account_number']) ? 'error' : ''; ?>"><label>Account number</label><input type="text" name="bank_account_number" id="phone"  inputmode="numeric" pattern="[0-9]*" autocomplete="off" value="<?php echo old($old, 'bank_account_number', $_SESSION['user']['bank_account_number'] ? htmlspecialchars($_SESSION['user']['bank_account_number']) : ''); ?>"/> <?php echo fieldError($errors, 'profile', null, 'bank_account_number'); ?></div>
+              <div class="field full <?php echo isset($errors['profile']['bank_account_number']) ? 'error' : ''; ?>"><label>Account number</label><input type="text" name="bank_account_number" id="phone"  inputmode="numeric" pattern="[0-9]*" autocomplete="off" value="<?php echo Utils::old($old, 'bank_account_number', $_SESSION['user']['bank_account_number'] ? htmlspecialchars($_SESSION['user']['bank_account_number']) : ''); ?>"/> <?php echo Utils::fieldError($errors, 'profile', null, 'bank_account_number'); ?></div>
 
-              <div class="field full <?php echo isset($errors['profile']['bank_account_name']) ? 'error' : ''; ?>"><label>Account name</label><input type="text" name="bank_account_name" id="account-name" value="<?php echo ucwords(old($old, 'bank_account_name', $_SESSION['user']['bank_account_name'] ? htmlspecialchars($_SESSION['user']['bank_account_name']) : '') ); ?>"/> <?php echo fieldError($errors, 'profile', null, 'bank_account_name'); ?></div>
+              <div class="field full <?php echo isset($errors['profile']['bank_account_name']) ? 'error' : ''; ?>"><label>Account name</label><input type="text" name="bank_account_name" id="account-name" value="<?php echo ucwords(Utils::old($old, 'bank_account_name', $_SESSION['user']['bank_account_name'] ? htmlspecialchars($_SESSION['user']['bank_account_name']) : '') ); ?>"/> <?php echo Utils::fieldError($errors, 'profile', null, 'bank_account_name'); ?></div>
 
-              <div class="field full <?php echo isset($errors['profile']['bank_name']) ? 'error' : ''; ?>"><label>Bank name</label><input type="text" name="bank_name" id="bank" value="<?php echo ucwords(old($old, 'bank_name', $_SESSION['user']['bank_name'] ? htmlspecialchars($_SESSION['user']['bank_name']) : '') ); ?>"/> <?php echo fieldError($errors, 'profile', null, 'bank_name'); ?></div>
+              <div class="field full <?php echo isset($errors['profile']['bank_name']) ? 'error' : ''; ?>"><label>Bank name</label><input type="text" name="bank_name" id="bank" value="<?php echo ucwords(Utils::old($old, 'bank_name', $_SESSION['user']['bank_name'] ? htmlspecialchars($_SESSION['user']['bank_name']) : '') ); ?>"/> <?php echo Utils::fieldError($errors, 'profile', null, 'bank_name'); ?></div>
 
               <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>"/>
 
@@ -438,9 +438,9 @@ input:focus,select.styled:focus{outline:none;border-color:var(--color-blue);box-
       <form action="<?php echo Config::get('baseProjectFolder'); ?>/profile/change-password" method="POST" class="card">
           <p class="section-title">Change Password</p>
           <div class="form-grid">
-            <div class="field full <?php echo isset($errors['profile']['current_password']) ? 'error' : ''; ?>"><label>Current password</label><input type="password" name="current_password" id="pw-current" placeholder="••••••••"/><?php echo fieldError($errors, 'profile', null, 'current_password'); ?> </div>
-            <div class="field <?php echo isset($errors['profile']['new_password']) ? 'error' : ''; ?>"><label>New password</label><input type="password" name="new_password" id="pw-new" placeholder="••••••••"/><?php echo fieldError($errors, 'profile', null, 'new_password'); ?> </div>
-            <div class="field <?php echo isset($errors['profile']['confirm_password']) ? 'error' : ''; ?>"><label>Confirm new password</label><input type="password" name="confirm_password" id="pw-confirm" placeholder="••••••••"/><?php echo fieldError($errors, 'profile', null, 'confirm_password'); ?> </div>
+            <div class="field full <?php echo isset($errors['profile']['current_password']) ? 'error' : ''; ?>"><label>Current password</label><input type="password" name="current_password" id="pw-current" placeholder="••••••••"/><?php echo Utils::fieldError($errors, 'profile', null, 'current_password'); ?> </div>
+            <div class="field <?php echo isset($errors['profile']['new_password']) ? 'error' : ''; ?>"><label>New password</label><input type="password" name="new_password" id="pw-new" placeholder="••••••••"/><?php echo Utils::fieldError($errors, 'profile', null, 'new_password'); ?> </div>
+            <div class="field <?php echo isset($errors['profile']['confirm_password']) ? 'error' : ''; ?>"><label>Confirm new password</label><input type="password" name="confirm_password" id="pw-confirm" placeholder="••••••••"/><?php echo Utils::fieldError($errors, 'profile', null, 'confirm_password'); ?> </div>
             <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>"/>
           </div> 
           <div class="form-actions"><button class="btn-primary" type="submit" >Update password</button></div>
@@ -521,25 +521,25 @@ input:focus,select.styled:focus{outline:none;border-color:var(--color-blue);box-
         <div class="field full <?php echo isset($errors['bank_account_name']) ? 'error' : ''; ?>">
           <label>Account holder name</label>
           <input type="text" name="bank_account_name" placeholder="e.g. John Doe"
-            value="<?php echo old($old, 'bank_account_name', ''); ?>"
+            value="<?php echo Utils::old($old, 'bank_account_name', ''); ?>"
             class="<?php echo isset($errors['bank_account_name']) ? 'error' : ''; ?>"/>
-          <?php echo fieldError($errors, 'bank_account_name'); ?>
+          <?php echo Utils::fieldError($errors, 'bank_account_name'); ?>
         </div>
 
         <div class="field full <?php echo isset($errors['bank_account_number']) ? 'error' : ''; ?>">
           <label>Account number</label>
           <input type="tel" name="bank_account_number" placeholder="e.g. 0123456789"
-            value="<?php echo old($old, 'bank_account_number', ''); ?>"
+            value="<?php echo Utils::old($old, 'bank_account_number', ''); ?>"
             class="<?php echo isset($errors['bank_account_number']) ? 'error' : ''; ?>"/>
-          <?php echo fieldError($errors, 'bank_account_number'); ?>
+          <?php echo Utils::fieldError($errors, 'bank_account_number'); ?>
         </div>
 
         <div class="field full <?php echo isset($errors['bank_name']) ? 'error' : ''; ?>">
           <label>Bank name</label>
           <input type="text" name="bank_name" placeholder="e.g. First Bank"
-            value="<?php echo old($old, 'bank_name', ''); ?>"
+            value="<?php echo Utils::old($old, 'bank_name', ''); ?>"
             class="<?php echo isset($errors['bank_name']) ? 'error' : ''; ?>"/>
-          <?php echo fieldError($errors, 'bank_name'); ?>
+          <?php echo Utils::fieldError($errors, 'bank_name'); ?>
         </div>
       </div>
 
@@ -565,25 +565,25 @@ input:focus,select.styled:focus{outline:none;border-color:var(--color-blue);box-
         <div class="field full <?php echo isset($errors['bank_account_name']) ? 'error' : ''; ?>">
           <label>Account holder name</label>
           <input type="text" name="bank_account_name" placeholder="e.g. John Doe"
-            value="<?php echo old($old, 'bank_account_name', ''); ?>"
+            value="<?php echo Utils::old($old, 'bank_account_name', ''); ?>"
             class="<?php echo isset($errors['bank_account_name']) ? 'error' : ''; ?>"/>
-          <?php echo fieldError($errors, 'bank_account_name'); ?>
+          <?php echo Utils::fieldError($errors, 'bank_account_name'); ?>
         </div>
 
         <div class="field full <?php echo isset($errors['bank_account_number']) ? 'error' : ''; ?>">
           <label>Account number</label>
           <input type="tel" name="bank_account_number" placeholder="e.g. 0123456789"
-            value="<?php echo old($old, 'bank_account_number', ''); ?>"
+            value="<?php echo Utils::old($old, 'bank_account_number', ''); ?>"
             class="<?php echo isset($errors['bank_account_number']) ? 'error' : ''; ?>"/>
-          <?php echo fieldError($errors, 'bank_account_number'); ?>
+          <?php echo Utils::fieldError($errors, 'bank_account_number'); ?>
         </div>
 
         <div class="field full <?php echo isset($errors['bank_name']) ? 'error' : ''; ?>">
           <label>Bank name</label>
           <input type="text" name="bank_name" placeholder="e.g. First Bank"
-            value="<?php echo old($old, 'bank_name', ''); ?>"
+            value="<?php echo Utils::old($old, 'bank_name', ''); ?>"
             class="<?php echo isset($errors['bank_name']) ? 'error' : ''; ?>"/>
-          <?php echo fieldError($errors, 'bank_name'); ?>
+          <?php echo Utils::fieldError($errors, 'bank_name'); ?>
         </div>
       </div>
 

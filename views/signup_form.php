@@ -1,6 +1,6 @@
 <?php
-// require_once '../invoiceManager/Config.php';
 
+use App\Config;
 /** @var array $errors */
 /** @var array $old */
 ?>

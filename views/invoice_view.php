@@ -1,11 +1,11 @@
 <?php
-// root/views/invoice_view.php
-require_once "./autoloader.php";
-require_once "./utils.php";
-requireAuth();
+
+use App\Config;
+use App\Utils;
+
+Utils::requireAuth();
 
 /** @var array $invoice */
-// var_dump($invoice);
 /** @var array $items */
 
 // Status badge helper

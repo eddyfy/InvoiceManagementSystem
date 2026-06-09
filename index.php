@@ -7,7 +7,6 @@ session_start(); // Start the session to manage user data across requests
 
 require_once 'autoloader.php'; // Include the autoloader to automatically load class files when they are instantiated
 
-
 use App\Config;
 use App\Includes\Router;
 use App\Controllers\HomeController;

@@ -16,13 +16,13 @@ class ValidateChangePassword{
             $errors["current_password"][] = "Current password is required.";
             $_SESSION['errors'] = $errors;
             $_SESSION['message'] = "Current password is required.";
-            header('Location: ' . Config::get('baseProjectFolder') . '/dashboard');
+            header('Location: ' . Config::get('baseProjectFolder') . '/dashboard?section=profile');
             exit();
         } else if (!password_verify($currentPassword, $user->password)) {
             $errors['profile']["current_password"][] = "Current password is incorrect.";
             $_SESSION['errors'] = $errors;
             $_SESSION['message'] = "Current password is incorrect.";
-            header('Location: ' . Config::get('baseProjectFolder') . '/dashboard');
+            header('Location: ' . Config::get('baseProjectFolder') . '/dashboard?section=profile');
             exit();
         }else{
             if (empty($newPassword)) {
@@ -44,7 +44,7 @@ class ValidateChangePassword{
 
         if(!empty($errors)){
             $_SESSION['errors'] = $errors;
-            header('Location: ' . Config::get('baseProjectFolder') . '/dashboard');
+            header('Location: ' . Config::get('baseProjectFolder') . '/dashboard?section=profile');
             exit();
         } 
 

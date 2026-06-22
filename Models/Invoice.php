@@ -4,6 +4,7 @@ namespace App\Models;
 use PDO;
 
 class Invoice extends Model{
+
     protected string $tableName = 'invoices';
 
     public int $id;
@@ -20,6 +21,7 @@ class Invoice extends Model{
     public string $notes;
     public string $created_at;
 
+    
     public function update(int $invoiceId, int $userId, array $data): bool {
         $stmt = $this->pdo->prepare("
             UPDATE invoices SET 
@@ -52,6 +54,7 @@ class Invoice extends Model{
             'user_id' => $userId
         ]);
     }
+
     public function getStats(int $userId): array {
         $stmt = $this->pdo->prepare("
             SELECT 
@@ -90,7 +93,6 @@ class Invoice extends Model{
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-
     public function getById(int $invoiceId, int $userId): ?array {
         $stmt = $this->pdo->prepare("SELECT * FROM invoices WHERE id = :id AND user_id = :user_id");
         $stmt->execute(['id' => $invoiceId, 'user_id' => $userId]);
@@ -101,4 +103,22 @@ class Invoice extends Model{
         $stmt = $this->pdo->prepare("DELETE FROM invoices WHERE id = :id AND user_id = :user_id");
         return $stmt->execute(['id' => $invoiceId, 'user_id' => $userId]);
     }
+
+    public function getPaginatedByUserId(int $userId, int $limit, int $offset): array {
+        $stmt = $this->pdo->prepare(
+    "SELECT * FROM invoices WHERE user_id = ? ORDER BY created_at DESC LIMIT ? OFFSET ?"
+    );
+    $stmt->bindValue(1, $userId, PDO::PARAM_INT);
+    $stmt->bindValue(2, $limit, PDO::PARAM_INT);
+    $stmt->bindValue(3, $offset, PDO::PARAM_INT);
+    $stmt->execute();
+    return $stmt->fetchAll();
+    }
+
+    public function countByUserId(int $userId): int {
+        $stmt = $this->pdo->prepare("SELECT COUNT(*) FROM invoices WHERE user_id = ?");
+        $stmt->execute([$userId]);
+        return (int) $stmt->fetchColumn();
+    }
+        
 }

@@ -6,6 +6,7 @@ use App\Models\User;
 use App\Config;
 use App\Requests\ValidateLogin;
 use App\Requests\ValidateSignup;
+use App\RateLimiter;
 use RuntimeException;
 
 class AuthController{
@@ -18,7 +19,16 @@ class AuthController{
         require './views/login_form.php'; // Include the login form view to display it to the user
     }
     public function handleLogin(): void {
-        
+        $key = 'login_' . ($_SERVER['REMOTE_ADDR'] ?? 'unknown');
+        $rateLimiter = new RateLimiter($key); // Create a new instance of the RateLimiter class with a maximum of 5 attempts and a decay time of 60 seconds
+
+        if (!$rateLimiter->attempt()) { // Check if the user has exceeded the maximum number of login attempts
+            $seconds = $rateLimiter->remainingSeconds(); // Get the remaining seconds until the user can attempt to log in again
+            $_SESSION['message'] = "Too many login attempts. Try again in {$seconds} seconds.";
+            header('Location: ' . Config::get('baseProjectFolder') . '/login');
+            exit();
+        }
+
         $validated = ValidateLogin::validate();
 
         $userModel = new User();
@@ -37,7 +47,11 @@ class AuthController{
                 'firstname' => $user->firstname,
                 'lastname' => $user->lastname,
                 'email' => $user->email,
-                'has_bank_details' => $user->has_bank_details,
+                'has_business_details' => $user->has_business_details,
+                'business_name' => $user->business_name,
+                'business_address' => $user->business_address,
+                'business_email' => $user->business_email,
+                'business_phone' => $user->business_phone,
                 'bank_account_name' => $user->bank_account_name,
                 'bank_account_number' => $user->bank_account_number,
                 'bank_name' => $user->bank_name
@@ -69,6 +83,15 @@ class AuthController{
         require './views/signup_form.php'; // Include the signup form view to display it to the user
     }
     public function handleSignup(): void { 
+        $key = 'signup_' . ($_SERVER['REMOTE_ADDR'] ?? 'unknown');
+        $rateLimiter = new RateLimiter($key); // Create a new instance of the RateLimiter class with a maximum of 5 attempts and a decay time of 60 seconds
+
+        if (!$rateLimiter->attempt()) { // Check if the user has exceeded the maximum number of signup attempts
+            $seconds = $rateLimiter->remainingSeconds(); // Get the remaining seconds until the user can attempt to signup again
+            $_SESSION['message'] = "Too many signup attempts. Try again in {$seconds} seconds.";
+            header('Location: ' . Config::get('baseProjectFolder') . '/signup');
+            exit();
+        }
 
         $validated = ValidateSignup::validate();
         $userModel = new User();

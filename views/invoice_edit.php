@@ -179,6 +179,8 @@ td input:focus{border-color:var(--color-blue);box-shadow:0 0 0 3px var(--color-b
   <div class="breadcrumb">
     <a href="<?php echo Config::get('baseProjectFolder'); ?>/dashboard">Dashboard</a>
     <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+    <a href="<?php echo Config::get('baseProjectFolder'); ?>/dashboard?section=invoices">Invoices</a>
+    <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
     <!-- TODO: Replace hardcoded id with $invoice['id'] -->
     <a href="<?php echo Config::get('baseProjectFolder'); ?>/invoice/view/<?php echo $invoice['id']; ?>">
       <?php echo htmlspecialchars($invoice['invoice_number']); ?>
@@ -211,12 +213,45 @@ td input:focus{border-color:var(--color-blue);box-shadow:0 0 0 3px var(--color-b
   <div class="card">
     <p class="section-title">Customer &amp; Invoice Info</p>
 
-    <div class="payment-details">
-      <p>Send payments to:</p>
-      <p>0284413444</p>
-      <p>WEMA BANK</p>
-      <p>Oretade Olaoluwakitan</p>
-    </div>
+    <?php if(isset($_SESSION['user'])): ?>
+        <div class="payment-details">
+            <?php if($_SESSION['user']['has_business_details'] ?? false): ?>
+
+                <p style="font-size:11px;font-weight:600;color:var(--color-text-secondary);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;">From</p>
+
+                <?php if(!empty($_SESSION['user']['business_name'])): ?>
+                    <p><?php echo ucwords(htmlspecialchars((string)$_SESSION['user']['business_name'])); ?></p>
+                <?php endif; ?>
+                <?php if(!empty($_SESSION['user']['business_email'])): ?>
+                    <p style="font-size:14px;"><?php echo htmlspecialchars((string)$_SESSION['user']['business_email']); ?></p>
+                <?php endif; ?>
+                <?php if(!empty($_SESSION['user']['business_phone'])): ?>
+                    <p style="font-size:14px;"><?php echo htmlspecialchars((string)$_SESSION['user']['business_phone']); ?></p>
+                <?php endif; ?>
+                <?php if(!empty($_SESSION['user']['business_address'])): ?>
+                    <p style="font-size:14px;"><?php echo ucwords(htmlspecialchars((string)$_SESSION['user']['business_address'])); ?></p>
+                <?php endif; ?>
+
+                <hr style="border:none;border-top:1px solid var(--color-border);margin:10px 0;">
+
+                <p style="font-size:11px;font-weight:600;color:var(--color-text-secondary);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;">Send payment to</p>
+                <p><?php echo htmlspecialchars((string)($_SESSION['user']['bank_account_number'] ?? '')); ?></p>
+                <p><?php echo strtoupper(htmlspecialchars((string)($_SESSION['user']['bank_name'] ?? ''))); ?></p>
+                <p><?php echo ucwords(htmlspecialchars((string)($_SESSION['user']['bank_account_name'] ?? ''))); ?></p>
+
+            <?php else: ?>
+                <div style="display:flex;align-items:flex-start;gap:8px;padding:12px 14px;border:1px solid var(--color-border);border-radius:var(--radius-md);margin-top:4px;">
+                    <svg style="width:14px;height:14px;stroke:var(--color-text-secondary);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0;margin-top:2px;" viewBox="0 0 24 24">
+                        <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+                    </svg>
+                    <p style="font-size:13px;color:var(--color-text-secondary);line-height:1.5;margin:0;">
+                        Business details not set up yet.
+                        <a href="<?php echo Config::get('baseProjectFolder'); ?>/dashboard?section=profile" style="color:var(--color-text-primary);font-weight:500;text-decoration:underline;text-underline-offset:2px;">Set them up in your profile →</a>
+                    </p>
+                </div>
+            <?php endif; ?>
+        </div>
+    <?php endif; ?>
 
     <!-- Status field — unique to the edit form -->
     <div class="grid3" style="margin-bottom:14px">
@@ -224,14 +259,14 @@ td input:focus{border-color:var(--color-blue);box-shadow:0 0 0 3px var(--color-b
         <label>Invoice #</label>
         <input type="text" name="invoice_number"
           value="<?php echo htmlspecialchars($invoice['invoice_number']); ?>"
-          class="<?php echo isset($errors['invoice_number']) ? 'error' : ''; ?>" />
+          class="<?php echo isset($errors['invoice_number']) ? 'error' : ''; ?>" required/>
         <?php echo Utils::fieldError($errors, 'invoice_number'); ?>
       </div>
       <div>
         <label>Date</label>
         <input type="date" name="invoice_date"
           value="<?php echo htmlspecialchars($invoice['invoice_date']); ?>"
-          class="<?php echo isset($errors['invoice_date']) ? 'error' : ''; ?>" />
+          class="<?php echo isset($errors['invoice_date']) ? 'error' : ''; ?>" required/>
         <?php echo Utils::fieldError($errors, 'invoice_date'); ?>
       </div>
       <div>
@@ -252,7 +287,7 @@ td input:focus{border-color:var(--color-blue);box-shadow:0 0 0 3px var(--color-b
         <input type="text" name="customer_name"
           value="<?php echo htmlspecialchars($invoice['customer_name']); ?>"
           placeholder="e.g. John Doe"
-          class="<?php echo isset($errors['customer_name']) ? 'error' : ''; ?>" />
+          class="<?php echo isset($errors['customer_name']) ? 'error' : ''; ?>" required/>
         <?php echo Utils::fieldError($errors, 'customer_name'); ?>
       </div>
       <div>
@@ -260,7 +295,7 @@ td input:focus{border-color:var(--color-blue);box-shadow:0 0 0 3px var(--color-b
         <input type="email" name="customer_email"
           value="<?php echo htmlspecialchars($invoice['customer_email']); ?>"
           placeholder="e.g. john.doe@example.com"
-          class="<?php echo isset($errors['customer_email']) ? 'error' : ''; ?>" />
+          class="<?php echo isset($errors['customer_email']) ? 'error' : ''; ?>" required/>
         <?php echo Utils::fieldError($errors, 'customer_email'); ?>
       </div>
     </div>

@@ -117,49 +117,83 @@ class Validators{
             }
     }
 
-    public static function validateBankAccountNumber(string $bank_account_number, array &$errors): void{
+    public static function validateBankAccountNumber(string $bank_account_number, array &$errors, string $source): void{
         if(empty($bank_account_number)){
-            $errors["bank_account_number"][] = "Bank account number is required.";
+            $errors[$source]["bank_account_number"][] = "Bank account number is required.";
         }else{
             if(!ctype_digit($bank_account_number)){
-                $errors["bank_account_number"][] = "Bank account number must contain only digits.";
+                $errors[$source]["bank_account_number"][] = "Bank account number must contain only digits.";
             }
             if(strlen($bank_account_number) !== 10){
-                $errors["bank_account_number"][] = "Bank account number must be exactly 10 digits.";
+                $errors[$source]["bank_account_number"][] = "Bank account number must be exactly 10 digits.";
+            }
+        }
+    }
+    public static function validateBusinessName(string $business_name, array &$errors, string $source): void{
+        if(empty($business_name)){
+            $errors[$source]["business_name"][] = "Business name is required.";
+        }else{
+            if(Utils::isLongerThan($business_name, 255)){
+                $errors[$source]["business_name"][] = "Business name must be less than 255 characters.";
             }
         }
     }
 
-    public static function validateBankAccountName(string $bank_account_name, array &$errors): void {
+    public static function validateBusinessEmail(string $business_email, array &$errors, string $source): void {
+        if (empty($business_email)) {
+            $errors[$source]["business_email"][] = "Business email is required.";
+        } else {
+            if (Utils::isLongerThan($business_email, 150)) {
+                $errors[$source]["business_email"][] = "Business email must be less than 150 characters.";
+            }
+            if (!Utils::isEmail($business_email)) {
+                $errors[$source]["business_email"][] = "Invalid email format.";
+            }
+        }
+    }
+
+    public static function validateBusinessAddress(string $business_address, array &$errors, string $source): void{ //field is not required
+            if(!empty($business_address) && Utils::isLongerThan($business_address, 500)){
+                $errors[$source]["business_address"][] = "Business address must be less than 500 characters.";
+            }
+    }
+
+    public static function validateBusinessPhone(string $business_phone, array &$errors, string $source): void{  // field is not required 
+        if(!empty($business_phone) && !preg_match("/^\+?[0-9]{7,15}$/", $business_phone)){
+            $errors[$source]["business_phone"][] = "Invalid phone number format.";
+        }
+    }
+
+    public static function validateBankAccountName(string $bank_account_name, array &$errors, string $source): void {
         if (empty($bank_account_name)) {
-            $errors["bank_account_name"][] = "Bank account name is required.";
+            $errors[$source]["bank_account_name"][] = "Bank account name is required.";
         } else {
             // Only letters, spaces, hyphens and apostrophes (for names like O'Brien or Obi-Wan)
             if (!preg_match("/^[a-zA-Z\s\-']+$/", $bank_account_name)) {
-                $errors["bank_account_name"][] = "Bank account name must contain letters only.";
+                $errors[$source]["bank_account_name"][] = "Bank account name must contain letters only.";
             }
             if (strlen($bank_account_name) < 2) {
-                $errors["bank_account_name"][] = "Bank account name must be at least 2 characters.";
+                $errors[$source]["bank_account_name"][] = "Bank account name must be at least 2 characters.";
             }
             if (Utils::isLongerThan($bank_account_name, 255)) {
-                $errors["bank_account_name"][] = "Bank account name must be less than 255 characters.";
+                $errors[$source]["bank_account_name"][] = "Bank account name must be less than 255 characters.";
             }
         }
     }
 
-    public static function validateBankName(string $bank_name, array &$errors): void {
+    public static function validateBankName(string $bank_name, array &$errors, string $source): void {
         if (empty($bank_name)) {
-            $errors["bank_name"][] = "Bank name is required.";
+            $errors[$source]["bank_name"][] = "Bank name is required.";
         } else {
             // Only letters, spaces, hyphens and ampersands (for names like Zenith Bank or First & Trust)
             if (!preg_match("/^[a-zA-Z\s\-&]+$/", $bank_name)) {
-                $errors["bank_name"][] = "Bank name must contain letters only.";
+                $errors[$source]["bank_name"][] = "Bank name must contain letters only.";
             }
             if (strlen($bank_name) < 2) {
-                $errors["bank_name"][] = "Bank name must be at least 2 characters.";
+                $errors[$source]["bank_name"][] = "Bank name must be at least 2 characters.";
             }
             if (Utils::isLongerThan($bank_name, 100)) {
-                $errors["bank_name"][] = "Bank name must be less than 100 characters.";
+                $errors[$source]["bank_name"][] = "Bank name must be less than 100 characters.";
             }
         }
     }
@@ -193,52 +227,6 @@ class Validators{
             }
             if (!Utils::isEmail($email)) {
                 $errors['profile']["email"][] = "Invalid email format.";
-            }
-        }
-    }
-    public static function validateProfileBankAccountNumber(string $bank_account_number, array &$errors): void{
-        if(empty($bank_account_number)){
-            $errors['profile']["bank_account_number"][] = "Bank account number is required."; // Ensure the key exists for consistent error handling
-        }else{
-            if(!ctype_digit($bank_account_number)){
-                $errors['profile']["bank_account_number"][] = "Bank account number must contain only digits.";
-            }
-            if(strlen($bank_account_number) !== 10){
-                $errors['profile']["bank_account_number"][] = "Bank account number must be exactly 10 digits.";
-            }
-        }
-    }
-
-    public static function validateProfileBankAccountName(string $bank_account_name, array &$errors): void {
-        if (empty($bank_account_name)) {
-            $errors['profile']["bank_account_name"][] = "Bank account name is required.";
-        } else {
-            // Only letters, spaces, hyphens and apostrophes (for names like O'Brien or Obi-Wan)
-            if (!preg_match("/^[a-zA-Z\s\-']+$/", $bank_account_name)) {
-                $errors['profile']["bank_account_name"][] = "Bank account name must contain letters only.";
-            }
-            if (strlen($bank_account_name) < 2) {
-                $errors['profile']["bank_account_name"][] = "Bank account name must be at least 2 characters.";
-            }
-            if (Utils::isLongerThan($bank_account_name, 255)) {
-                $errors['profile']["bank_account_name"][] = "Bank account name must be less than 255 characters.";
-            }
-        }
-    }
-
-    public static function validateProfileBankName(string $bank_name, array &$errors): void {
-        if(empty($bank_name)){
-            $errors['profile']["bank_name"][] = "Bank name is required.";
-        }else{
-            // Only letters, spaces, hyphens and ampersands (for names like Zenith Bank or First & Trust)
-            if (!preg_match("/^[a-zA-Z\s\-&]+$/", $bank_name)) {
-                $errors['profile']["bank_name"][] = "Bank name must contain letters only.";
-            }
-            if (strlen($bank_name) < 2) {
-                $errors['profile']["bank_name"][] = "Bank name must be at least 2 characters.";
-            }
-            if (Utils::isLongerThan($bank_name, 100)) {
-                $errors['profile']["bank_name"][] = "Bank name must be less than 100 characters.";
             }
         }
     }

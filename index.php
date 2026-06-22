@@ -24,7 +24,7 @@ $router->get(Config::get('baseProjectFolder') . '/dashboard', action(HomeControl
 
 $router->get(Config::get('baseProjectFolder') . '/invoice', action(InvoiceController::class, 'showInvoiceForm'));
 
-$router->post(Config::get('baseProjectFolder') . '/invoice', action(InvoiceController::class, 'handleInvoiceSubmission'));
+$router->post(Config::get('baseProjectFolder') . '/invoice', action(InvoiceController::class, 'createInvoice'));
 
 $router->get(Config::get('baseProjectFolder') . '/login', action(AuthController::class, 'showLoginForm'));
 
@@ -36,13 +36,15 @@ $router->post(Config::get('baseProjectFolder') . '/signup', action(AuthControlle
 
 $router->get(Config::get('baseProjectFolder') . '/logout', action(AuthController::class, 'logout'));
 
-$router->post(Config::get('baseProjectFolder') . '/profile/update', action(UserController::class, 'updateProfile'));
+$router->post(Config::get('baseProjectFolder') . '/profile/update-personal-info', action(UserController::class, 'updatePersonalInfo'));
 
 $router->post(Config::get('baseProjectFolder') . '/profile/change-password', action(UserController::class, 'changePassword'));
 
 $router->delete(Config::get('baseProjectFolder') . '/profile/delete', action(UserController::class, 'deleteAccount'));
 
-$router->post(Config::get('baseProjectFolder') . '/profile/bank-details', action(UserController::class, 'saveBankDetails'));
+$router->post(Config::get('baseProjectFolder') . '/profile/update-business-details', action(UserController::class, 'updateBusinessDetails'));
+
+$router->post(Config::get('baseProjectFolder') . '/profile/business-details', action(UserController::class, 'saveBusinessDetails'));
 
 $router->post(Config::get('baseProjectFolder') . '/profile/update-bank-details', action(UserController::class, 'updateBankDetails'));
 
@@ -53,6 +55,10 @@ $router->get(Config::get('baseProjectFolder') . '/invoice/edit/{id}', action(Inv
 $router->put(Config::get('baseProjectFolder') . '/invoice/update/{id}', action(InvoiceController::class, 'updateInvoice'));
 
 $router->delete(Config::get('baseProjectFolder') . '/invoice/delete/{id}', action(InvoiceController::class, 'deleteInvoice'));
+
+$router->get(Config::get('baseProjectFolder') . '/invoice/pdf/{id}', action(InvoiceController::class, 'downloadPdf'));
+
+$router->post(Config::get('baseProjectFolder') . '/invoice/pdf-public', action(InvoiceController::class, 'downloadPdfPublic'));
 
 
 $router->dispatch($path);

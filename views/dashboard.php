@@ -8,6 +8,8 @@ Utils::requireAuth(); // Ensure the user is authenticated before accessing the d
 /** @var array $allInvoices */
 /** @var array $errors */
 /** @var array $old */
+/** @var int $totalPages */
+/** @var int $page */
 
 ?>
 <!DOCTYPE html>
@@ -213,6 +215,60 @@ input:focus,select.styled:focus{outline:none;border-color:var(--color-blue);box-
 .bnav-logout{color:#ef4444;}
 .bnav-logout svg{stroke:#ef4444;}
 
+/* pagination */
+.pagination {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    margin-top: 1.25rem;
+    flex-wrap: wrap;
+}
+
+.pagination a {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: var(--radius-md);
+    font-size: 13px;
+    font-family: var(--font-sans);
+    font-weight: 500;
+    color: var(--color-text-secondary);
+    border: 1px solid var(--color-border);
+    background: var(--color-surface);
+    text-decoration: none;
+    transition: background 0.12s, color 0.12s, border-color 0.12s;
+}
+
+.pagination a:hover {
+    background: #f1f5f9;
+    color: var(--color-text-primary);
+    border-color: var(--color-border-mid);
+}
+
+.pagination a.active {
+    background: var(--color-accent);
+    color: white;
+    border-color: var(--color-accent);
+    font-weight: 600;
+}
+
+.pagination a.prev,
+.pagination a.next {
+    width: auto;
+    padding: 0 12px;
+    gap: 5px;
+    font-size: 13px;
+}
+
+.pagination .dots {
+    font-size: 13px;
+    color: var(--color-text-secondary);
+    padding: 0 4px;
+}
+
 /* ── RESPONSIVE ── */
 @media(max-width:768px){
   .hamburger{display:flex;}
@@ -253,6 +309,16 @@ input:focus,select.styled:focus{outline:none;border-color:var(--color-blue);box-
   .stats{grid-template-columns:1fr;}
   .stats .stat-card:last-child{grid-column:1;}
   .brand-name{display:none;}
+  .pagination a {
+        width: 28px;
+        height: 28px;
+        font-size: 12px;
+    }
+
+  .pagination a.prev, .pagination a.next {
+        padding: 0 8px;
+        font-size: 12px;
+    }
 }
 </style>
 </head>
@@ -386,6 +452,23 @@ input:focus,select.styled:focus{outline:none;border-color:var(--color-blue);box-
             <tbody id="invoice-tbody"></tbody>
           </table>
         </div>
+        <div class="pagination">
+          <?php if ($page > 1): ?>
+              <a href="?section=invoices&page=<?= $page - 1 ?>" class="prev">← Prev</a>
+          <?php endif; ?>
+
+          <?php for ($i = 1; $i <= $totalPages; $i++): ?>
+              <?php if ($i === 1 || $i === $totalPages || abs($i - $page) <= 1): ?>
+                  <a href="?section=invoices&page=<?= $i ?>" <?= $i === $page ? 'class="active"' : '' ?>><?= $i ?></a>
+              <?php elseif (abs($i - $page) === 2): ?>
+                  <span class="dots">…</span>
+              <?php endif; ?>
+          <?php endfor; ?>
+
+          <?php if ($page < $totalPages): ?>
+              <a href="?section=invoices&page=<?= $page + 1 ?>" class="next">Next →</a>
+          <?php endif; ?>
+        </div>
         <div id="invoice-empty" class="empty-state" style="display:none">
           <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
           <p>No invoices match your search.</p>
@@ -394,39 +477,32 @@ input:focus,select.styled:focus{outline:none;border-color:var(--color-blue);box-
     </div>
 
     <!-- PROFILE -->
-    <div class="section" id="section-profile">
-      <div class="page-header">
-        <div class="page-title">My Profile</div>
-        <div class="page-sub">View and update your account information.</div>
-      </div>
+    <div class="section" id="section-profile"> 
+          <div class="page-header">
+            <div class="page-title">My Profile</div>
+            <div class="page-sub">View and update your account information.</div>
+          </div>
       <div class="card">
         <div class="profile-header">
-          <div class="avatar-lg" id="avatar-initials"><?php echo substr($_SESSION['user']['firstname'], 0, 1); ?><?php echo substr($_SESSION['user']['lastname'], 0, 1); ?></div>
-          <div class="profile-meta">
-            <h2 id="display-name"><?php echo $_SESSION['user']['firstname'] ?: 'User'; ?> <?php echo $_SESSION['user']['lastname'] ?: 'Username'; ?></h2>
-            <p id="display-email"><?php echo $_SESSION['user']['email'] ?: 'user@example.com'; ?></p>
-          </div>
+            <div class="avatar-lg" id="avatar-initials"><?php echo substr($_SESSION['user']['firstname'], 0, 1); ?><?php echo substr($_SESSION['user']['lastname'], 0, 1); ?></div>
+            <div class="profile-meta">
+              <h2 id="display-name"><?php echo $_SESSION['user']['firstname'] ?: 'User'; ?> <?php echo $_SESSION['user']['lastname'] ?: 'Username'; ?></h2>
+              <p id="display-email"><?php echo $_SESSION['user']['email'] ?: 'user@example.com'; ?></p>
+            </div>
         </div>
         <p class="section-title">Personal Information</p>
         
-        <form  action="<?php echo Config::get('baseProjectFolder'); ?>/profile/update" method="POST" id="profile-form" class="updateInfo card">
+        <form  action="<?php echo Config::get('baseProjectFolder'); ?>/profile/update-personal-info" method="POST" id="profile-form" class="updateInfo card">
             <div class="form-grid" >
 
-              <div class="field <?php echo isset($errors['profile']['firstname']) ? 'error' : ''; ?>"><label>First name</label><input type="text" name="firstname" id="fname" value="<?php echo Utils::old($old, 'firstname', htmlspecialchars($_SESSION['user']['firstname'])); ?>"/> <?php echo Utils::fieldError($errors, 'profile', null, 'firstname'); ?> </div>
+              <div class="field <?php echo isset($errors['profile']['firstname']) ? 'error' : ''; ?>"><label>First name</label><input type="text" name="firstname" id="fname" value="<?php echo Utils::old($old, 'firstname', htmlspecialchars((string)($_SESSION['user']['firstname'] ?? ''))); ?>" required/> <?php echo Utils::fieldError($errors, 'profile', null, 'firstname'); ?> </div>
              
-              <div class="field <?php echo isset($errors['profile']['lastname']) ? 'error' : ''; ?>"><label>Last name</label><input type="text" name="lastname" id="lname" value="<?php echo Utils::old($old, 'lastname', htmlspecialchars($_SESSION['user']['lastname'])); ?>"/><?php echo Utils::fieldError($errors, 'profile', null, 'lastname'); ?></div>
+              <div class="field <?php echo isset($errors['profile']['lastname']) ? 'error' : ''; ?>"><label>Last name</label><input type="text" name="lastname" id="lname" value="<?php echo Utils::old($old, 'lastname', htmlspecialchars((string)($_SESSION['user']['lastname'] ?? ''))); ?>" required/><?php echo Utils::fieldError($errors, 'profile', null, 'lastname'); ?></div>
               
-              <div class="field <?php echo isset($errors['profile']['email']) ? 'error' : ''; ?>"><label>Email address</label><input type="email" name="email" id="email" value="<?php echo Utils::old($old, 'email', htmlspecialchars($_SESSION['user']['email'])); ?>"/> <?php echo Utils::fieldError($errors, 'profile', null, 'email'); ?></div>
-
-              <div class="field full <?php echo isset($errors['profile']['bank_account_number']) ? 'error' : ''; ?>"><label>Account number</label><input type="text" name="bank_account_number" id="phone"  inputmode="numeric" pattern="[0-9]*" autocomplete="off" value="<?php echo Utils::old($old, 'bank_account_number', $_SESSION['user']['bank_account_number'] ? htmlspecialchars($_SESSION['user']['bank_account_number']) : ''); ?>"/> <?php echo Utils::fieldError($errors, 'profile', null, 'bank_account_number'); ?></div>
-
-              <div class="field full <?php echo isset($errors['profile']['bank_account_name']) ? 'error' : ''; ?>"><label>Account name</label><input type="text" name="bank_account_name" id="account-name" value="<?php echo ucwords(Utils::old($old, 'bank_account_name', $_SESSION['user']['bank_account_name'] ? htmlspecialchars($_SESSION['user']['bank_account_name']) : '') ); ?>"/> <?php echo Utils::fieldError($errors, 'profile', null, 'bank_account_name'); ?></div>
-
-              <div class="field full <?php echo isset($errors['profile']['bank_name']) ? 'error' : ''; ?>"><label>Bank name</label><input type="text" name="bank_name" id="bank" value="<?php echo ucwords(Utils::old($old, 'bank_name', $_SESSION['user']['bank_name'] ? htmlspecialchars($_SESSION['user']['bank_name']) : '') ); ?>"/> <?php echo Utils::fieldError($errors, 'profile', null, 'bank_name'); ?></div>
+              <div class="field <?php echo isset($errors['profile']['email']) ? 'error' : ''; ?>"><label>Email address</label><input type="email" name="email" id="email" value="<?php echo Utils::old($old, 'email', htmlspecialchars((string)($_SESSION['user']['email'] ?? ''))); ?>" required/> <?php echo Utils::fieldError($errors, 'profile', null, 'email'); ?></div>
 
               <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>"/>
 
-           
               <!-- <div class="field full"><label>Business / Bank name</label><input type="text" id="bank" value="WEMA BANK"/></div> -->
             </div>
             <div class="form-actions">
@@ -434,23 +510,69 @@ input:focus,select.styled:focus{outline:none;border-color:var(--color-blue);box-
               <button type="submit" class="btn-primary">Save changes</button>
             </div>
         </form>
-   
-      <form action="<?php echo Config::get('baseProjectFolder'); ?>/profile/change-password" method="POST" class="card">
-          <p class="section-title">Change Password</p>
-          <div class="form-grid">
-            <div class="field full <?php echo isset($errors['profile']['current_password']) ? 'error' : ''; ?>"><label>Current password</label><input type="password" name="current_password" id="pw-current" placeholder="••••••••"/><?php echo Utils::fieldError($errors, 'profile', null, 'current_password'); ?> </div>
-            <div class="field <?php echo isset($errors['profile']['new_password']) ? 'error' : ''; ?>"><label>New password</label><input type="password" name="new_password" id="pw-new" placeholder="••••••••"/><?php echo Utils::fieldError($errors, 'profile', null, 'new_password'); ?> </div>
-            <div class="field <?php echo isset($errors['profile']['confirm_password']) ? 'error' : ''; ?>"><label>Confirm new password</label><input type="password" name="confirm_password" id="pw-confirm" placeholder="••••••••"/><?php echo Utils::fieldError($errors, 'profile', null, 'confirm_password'); ?> </div>
-            <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>"/>
-          </div> 
-          <div class="form-actions"><button class="btn-primary" type="submit" >Update password</button></div>
-        </div>
+      <form action="<?php echo Config::get('baseProjectFolder'); ?>/profile/business-details" method="POST" class="card">
+      <p class="section-title" id="business-info-section">Business Information</p>
+      <div class="form-grid" >
+
+          <div class="field full <?php echo isset($errors['profile']['business_name']) ? 'error' : ''; ?>">
+              <label>Business name</label>
+              <input type="text" name="business_name" placeholder="e.g. Acme Ltd"
+                  value="<?php echo Utils::old($old, 'business_name', ucwords(htmlspecialchars((string)($_SESSION['user']['business_name'] ?? '')))); ?>" required/>
+              <?php echo Utils::fieldError($errors, 'profile', null, 'business_name'); ?>
+          </div>
+
+          <div class="field <?php echo isset($errors['profile']['business_email']) ? 'error' : ''; ?>">
+              <label>Business email</label>
+              <input type="email" name="business_email" placeholder="e.g. info@acme.com"
+                  value="<?php echo Utils::old($old, 'business_email', htmlspecialchars((string)($_SESSION['user']['business_email'] ?? ''))); ?>" required/>
+              <?php echo Utils::fieldError($errors, 'profile', null, 'business_email'); ?>
+          </div>
+
+          <div class="field <?php echo isset($errors['profile']['business_phone']) ? 'error' : ''; ?>">
+              <label>Business phone(optional)</label>
+              <input type="tel" name="business_phone" inputmode="numeric" placeholder="e.g. 08012345678"
+                  value="<?php echo Utils::old($old, 'business_phone', htmlspecialchars((string)($_SESSION['user']['business_phone'] ?? '')) ?? ''); ?>"/>
+              <?php echo Utils::fieldError($errors, 'profile', null, 'business_phone'); ?>
+          </div>
+
+          <div class="field full <?php echo isset($errors['profile']['business_address']) ? 'error' : ''; ?>">
+              <label>Business address (optional)</label>
+              <input type="text" name="business_address" placeholder="e.g. 12 Marina Street, Lagos"
+                  value="<?php echo Utils::old($old, 'business_address', ucwords(htmlspecialchars((string)($_SESSION['user']['business_address'] ?? '')))); ?>"/>
+              <?php echo Utils::fieldError($errors, 'profile', null, 'business_address'); ?>
+          </div>
+
+          <div class="field full <?php echo isset($errors['profile']['bank_account_number']) ? 'error' : ''; ?>"><label>Account number</label><input type="text" name="bank_account_number" id="phone"  inputmode="numeric" pattern="[0-9]*" autocomplete="off" value="<?php echo Utils::old($old, 'bank_account_number', htmlspecialchars((string)($_SESSION['user']['bank_account_number'] ?? ''))); ?>" required/> <?php echo Utils::fieldError($errors, 'profile', null, 'bank_account_number'); ?></div>
+
+          <div class="field full <?php echo isset($errors['profile']['bank_account_name']) ? 'error' : ''; ?>"><label>Account name</label><input type="text" name="bank_account_name" id="account-name" value="<?php echo ucwords(Utils::old($old, 'bank_account_name', htmlspecialchars((string)($_SESSION['user']['bank_account_name'] ?? '')))); ?>" required/> <?php echo Utils::fieldError($errors, 'profile', null, 'bank_account_name'); ?></div>
+
+          <div class="field full <?php echo isset($errors['profile']['bank_name']) ? 'error' : ''; ?>"><label>Bank name</label><input type="text" name="bank_name" id="bank" value="<?php echo ucwords(Utils::old($old, 'bank_name', htmlspecialchars((string)($_SESSION['user']['bank_name'] ?? '')))); ?>" required/> <?php echo Utils::fieldError($errors, 'profile', null, 'bank_name'); ?></div>
+
+          <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>"/>
+
+          <input type="hidden" name="source" value="profile"/>
+      </div>
+      <div class="form-actions">
+          <button type="reset" class="btn-outline">Cancel</button>
+          <button type="submit" class="btn-primary">Save business details</button>
+      </div>
       </form>
-        <div class="danger-zone">
-          <div class="danger-title">Danger Zone</div>
-          <div class="danger-desc">Permanently delete your account and all associated invoices. This action cannot be undone.</div>
-          <button class="btn-danger" onclick="openDeleteAccount()">Delete my account</button>
-        </div>
+          <form action="<?php echo Config::get('baseProjectFolder'); ?>/profile/change-password" method="POST" class="card">
+              <p class="section-title">Change Password</p>
+              <div class="form-grid">
+                <div class="field full <?php echo isset($errors['profile']['current_password']) ? 'error' : ''; ?>"><label>Current password</label><input type="password" name="current_password" id="pw-current" placeholder="••••••••"/><?php echo Utils::fieldError($errors, 'profile', null, 'current_password'); ?> </div>
+                <div class="field <?php echo isset($errors['profile']['new_password']) ? 'error' : ''; ?>"><label>New password</label><input type="password" name="new_password" id="pw-new" placeholder="••••••••"/><?php echo Utils::fieldError($errors, 'profile', null, 'new_password'); ?> </div>
+                <div class="field <?php echo isset($errors['profile']['confirm_password']) ? 'error' : ''; ?>"><label>Confirm new password</label><input type="password" name="confirm_password" id="pw-confirm" placeholder="••••••••"/><?php echo Utils::fieldError($errors, 'profile', null, 'confirm_password'); ?> </div>
+                <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>"/>
+              </div> 
+              <div class="form-actions"><button class="btn-primary" type="submit" >Update password</button></div>
+            </div>
+          </form>
+          <div class="danger-zone">
+            <div class="danger-title">Danger Zone</div>
+            <div class="danger-desc">Permanently delete your account and all associated invoices. This action cannot be undone.</div>
+            <button class="btn-danger" onclick="openDeleteAccount()">Delete my account</button>
+          </div>
      
 
   </main>
@@ -508,83 +630,75 @@ input:focus,select.styled:focus{outline:none;border-color:var(--color-blue);box-
   </div>
 </div>
 
-<!-- BANK SETUP MODAL -->
-<!-- <div class="modal-backdrop" id="bank-setup-modal">
+
+<!-- BUSINESS SETUP MODAL -->
+<div class="modal-backdrop" id="business-setup-modal">
   <div class="modal" style="max-width:460px;">
-    <h3>Set up your bank details</h3>
-    <p>Add your bank details so clients can pay you directly on invoices. You can always update this later in your profile.</p>
+    <h3>Set up your business details</h3>
+    <p>Add your business details so they appear on your invoices. You can always update this later in your profile.</p>
     
-    <form action="<?php echo Config::get('baseProjectFolder'); ?>/profile/bank-details" method="POST">
+    <form action="<?php echo Config::get('baseProjectFolder'); ?>/profile/business-details" method="POST">
       <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>"/>
 
       <div class="form-grid" style="margin-bottom:0;">
+        
+        <div class="field full <?php echo isset($errors['business_name']) ? 'error' : ''; ?>">
+          <label>Business name</label>
+          <input type="text" name="business_name" placeholder="e.g. Acme Ltd"
+            value="<?php echo Utils::old($old, 'business_name', ''); ?>"
+            class="<?php echo isset($errors['business_name']) ? 'error' : ''; ?>" required/>
+          <?php echo Utils::fieldError($errors, 'modal', null, 'business_name'); ?>
+        </div>
+
+        <div class="field <?php echo isset($errors['business_email']) ? 'error' : ''; ?>">
+          <label>Business email</label>
+          <input type="email" name="business_email" placeholder="e.g. info@acme.com"
+            value="<?php echo Utils::old($old, 'business_email', ''); ?>"
+            class="<?php echo isset($errors['business_email']) ? 'error' : ''; ?>" required/>
+          <?php echo Utils::fieldError($errors, 'modal', null, 'business_email'); ?>
+        </div>
+
+        <div class="field <?php echo isset($errors['business_phone']) ? 'error' : ''; ?>">
+          <label>Business phone (optional)</label>
+          <input type="tel" name="business_phone" inputmode="numeric" placeholder="e.g. 08012345678"
+            value="<?php echo Utils::old($old, 'business_phone', ''); ?>"
+            class="<?php echo isset($errors['business_phone']) ? 'error' : ''; ?>"/>
+          <?php echo Utils::fieldError($errors, 'modal', null, 'business_phone'); ?>
+        </div>
+
+        <div class="field full <?php echo isset($errors['business_address']) ? 'error' : ''; ?>">
+          <label>Business address (optional)</label>
+          <input type="text" name="business_address" placeholder="e.g. 12 Marina Street, Lagos"
+            value="<?php echo Utils::old($old, 'business_address', ''); ?>"
+            class="<?php echo isset($errors['business_address']) ? 'error' : ''; ?>" />
+          <?php echo Utils::fieldError($errors, 'modal', null, 'business_address'); ?>
+        </div>
+
         <div class="field full <?php echo isset($errors['bank_account_name']) ? 'error' : ''; ?>">
-          <label>Account holder name</label>
-          <input type="text" name="bank_account_name" placeholder="e.g. John Doe"
+          <label>Account name</label>
+          <input type="text" name="bank_account_name" placeholder="e.g. Acme Ltd"
             value="<?php echo Utils::old($old, 'bank_account_name', ''); ?>"
-            class="<?php echo isset($errors['bank_account_name']) ? 'error' : ''; ?>"/>
-          <?php echo Utils::fieldError($errors, 'bank_account_name'); ?>
+            class="<?php echo isset($errors['bank_account_name']) ? 'error' : ''; ?>" required/>
+          <?php echo Utils::fieldError($errors, 'modal', null, 'bank_account_name'); ?>
         </div>
 
-        <div class="field full <?php echo isset($errors['bank_account_number']) ? 'error' : ''; ?>">
+        <div class="field <?php echo isset($errors['bank_account_number']) ? 'error' : ''; ?>">
           <label>Account number</label>
-          <input type="tel" name="bank_account_number" placeholder="e.g. 0123456789"
+          <input type="tel" name="bank_account_number" inputmode="numeric" placeholder="e.g. 0123456789"
             value="<?php echo Utils::old($old, 'bank_account_number', ''); ?>"
-            class="<?php echo isset($errors['bank_account_number']) ? 'error' : ''; ?>"/>
-          <?php echo Utils::fieldError($errors, 'bank_account_number'); ?>
+            class="<?php echo isset($errors['bank_account_number']) ? 'error' : ''; ?>" required/>
+          <?php echo Utils::fieldError($errors, 'modal', null, 'bank_account_number'); ?>
         </div>
 
-        <div class="field full <?php echo isset($errors['bank_name']) ? 'error' : ''; ?>">
+        <div class="field <?php echo isset($errors['bank_name']) ? 'error' : ''; ?>">
           <label>Bank name</label>
           <input type="text" name="bank_name" placeholder="e.g. First Bank"
             value="<?php echo Utils::old($old, 'bank_name', ''); ?>"
-            class="<?php echo isset($errors['bank_name']) ? 'error' : ''; ?>"/>
-          <?php echo Utils::fieldError($errors, 'bank_name'); ?>
+            class="<?php echo isset($errors['bank_name']) ? 'error' : ''; ?>" required/>
+          <?php echo Utils::fieldError($errors, 'modal', null, 'bank_name'); ?>
         </div>
-      </div>
+          <input type="hidden" name="source" value="modal"/>
 
-      <div class="modal-actions" style="margin-top:18px;">
-        <button type="button" class="btn-outline" onclick="closeBankModal()">Set up later</button>
-        <button type="submit" class="btn-primary">Save details</button>
-      </div>
-    </form>
-
-  </div>
-</div> -->
-
-<!-- BANK SETUP MODAL -->
-<div class="modal-backdrop" id="bank-setup-modal">
-  <div class="modal" style="max-width:460px;">
-    <h3>Set up your bank details</h3>
-    <p>Add your bank details so clients can pay you directly on invoices. You can always update this later in your profile.</p>
-    
-    <form action="<?php echo Config::get('baseProjectFolder'); ?>/profile/bank-details" method="POST">
-      <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>"/>
-
-      <div class="form-grid" style="margin-bottom:0;">
-        <div class="field full <?php echo isset($errors['bank_account_name']) ? 'error' : ''; ?>">
-          <label>Account holder name</label>
-          <input type="text" name="bank_account_name" placeholder="e.g. John Doe"
-            value="<?php echo Utils::old($old, 'bank_account_name', ''); ?>"
-            class="<?php echo isset($errors['bank_account_name']) ? 'error' : ''; ?>"/>
-          <?php echo Utils::fieldError($errors, 'bank_account_name'); ?>
-        </div>
-
-        <div class="field full <?php echo isset($errors['bank_account_number']) ? 'error' : ''; ?>">
-          <label>Account number</label>
-          <input type="tel" name="bank_account_number" placeholder="e.g. 0123456789"
-            value="<?php echo Utils::old($old, 'bank_account_number', ''); ?>"
-            class="<?php echo isset($errors['bank_account_number']) ? 'error' : ''; ?>"/>
-          <?php echo Utils::fieldError($errors, 'bank_account_number'); ?>
-        </div>
-
-        <div class="field full <?php echo isset($errors['bank_name']) ? 'error' : ''; ?>">
-          <label>Bank name</label>
-          <input type="text" name="bank_name" placeholder="e.g. First Bank"
-            value="<?php echo Utils::old($old, 'bank_name', ''); ?>"
-            class="<?php echo isset($errors['bank_name']) ? 'error' : ''; ?>"/>
-          <?php echo Utils::fieldError($errors, 'bank_name'); ?>
-        </div>
       </div>
 
       <!-- Don't Show Again Checkbox -->
@@ -596,7 +710,7 @@ input:focus,select.styled:focus{outline:none;border-color:var(--color-blue);box-
       </div>
 
       <div class="modal-actions" style="margin-top:10px;">
-        <button type="button" class="btn-outline" onclick="closeBankModal()">Set up later</button>
+        <button type="button" class="btn-outline" onclick="closeBusinessModal()">Set up later</button>
         <button type="submit" class="btn-primary">Save details</button>
       </div>
     </form>
@@ -605,7 +719,7 @@ input:focus,select.styled:focus{outline:none;border-color:var(--color-blue);box-
 </div>
 
 <div class="toast" id="toast"></div>
-
+   
 <script>
   const baseUrl = '<?php echo Config::get('baseProjectFolder'); ?>'; 
   const firstName = "<?php echo htmlspecialchars($_SESSION['user']['firstname']); ?>";
@@ -684,6 +798,7 @@ function badgeClass(s){return s==='Paid'?'badge-paid':s==='Sent'?'badge-sent':'b
 //     </tr>
 //   `).join('');
 // }
+
 function renderInvoices(data){
   const tbody=document.getElementById('invoice-tbody');
   const empty=document.getElementById('invoice-empty');
@@ -711,6 +826,7 @@ function renderInvoices(data){
     </tr>
   `).join('');
 }
+
 function filterInvoices(){
   const q=document.getElementById('search-input').value.toLowerCase();
   const s=document.getElementById('status-filter').value;
@@ -784,54 +900,57 @@ async function deleteAccount() {
 
 
 
-// ── BANK SETUP MODAL ──
-(function initBankModal() {
+// ── BUSINESS SETUP MODAL ──
+(function initBusinessModal() {
     const userId = <?php echo json_encode($_SESSION['user']['id'] ?? ''); ?>;
-    const hasBankDetails = <?php echo json_encode((bool)($_SESSION['user']['has_bank_details'] ?? false)); ?>;
-    const hasErrors = <?php echo json_encode(!empty($errors) && (isset($errors['bank_account_name']) || isset($errors['bank_account_number']) || isset($errors['bank_name']))); ?>;
+    const hasBusinessDetails = <?php echo json_encode((bool)($_SESSION['user']['has_business_details'] ?? false)); ?>;
+    const hasErrors = <?php echo json_encode(!empty($errors['modal'])); ?>;
 
-    if (hasBankDetails) return;
+    if (hasBusinessDetails) {
+        localStorage.removeItem('invoiceManager_business'); // ← clear if already set up
+        return;
+    }
 
-    // Show immediately if there are validation errors
+    // Prefill from localStorage — runs regardless of which path shows the modal
+    const saved = localStorage.getItem('invoiceManager_business');
+    if (saved) {
+        try {
+            const data = JSON.parse(saved);
+            for (const [name, value] of Object.entries(data)) {
+                const el = document.querySelector(`#business-setup-modal [name="${name}"]`);
+                if (el && value) el.value = value;
+            }
+        } catch(e) {}
+    }
+
     if (hasErrors) {
         setTimeout(() => {
-            document.getElementById('bank-setup-modal').classList.add('open');
+            document.getElementById('business-setup-modal').classList.add('open');
         }, 600);
         return;
     }
 
-    const dontShowKey = 'bankModalDontShow_' + userId;
+    const dontShowKey = 'businessModalDontShow_' + userId;
+    if (localStorage.getItem(dontShowKey) === 'true') return;
 
-    // Check if user permanently hid the modal
-    if (localStorage.getItem(dontShowKey) === 'true') {
-        return;
-    }
+    const skipKey = 'businessModalSkipped_' + userId;
+    if (sessionStorage.getItem(skipKey) === 'true') return;
 
-    // Create user-specific skip key
-    const skipKey = 'bankModalSkipped_' + userId;
-
-    // Check if this specific user skipped it in this session
-    if (sessionStorage.getItem(skipKey) === 'true') {
-        return; // Don't show for this user
-    }
-
-    // Show the modal
     setTimeout(() => {
-        document.getElementById('bank-setup-modal').classList.add('open');
+        document.getElementById('business-setup-modal').classList.add('open');
     }, 800);
-
 })();
 
 // Updated close function
-function closeBankModal() {
-    const modal = document.getElementById('bank-setup-modal');
+function closeBusinessModal() {
+    const modal = document.getElementById('business-setup-modal');
     const dontShowCheckbox = document.getElementById('dont-show-again');
     
     modal.classList.remove('open');
 
     const userId = <?php echo json_encode($_SESSION['user']['id'] ?? ''); ?>;
-    const dontShowKey = 'bankModalDontShow_' + userId;
-    const skipKey = 'bankModalSkipped_' + userId;
+    const dontShowKey = 'businessModalDontShow_' + userId;
+    const skipKey = 'businessModalSkipped_' + userId;
 
     // Mark as skipped for THIS user only
     sessionStorage.setItem(skipKey, 'true');

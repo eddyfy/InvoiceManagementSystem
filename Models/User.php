@@ -15,10 +15,14 @@ class User extends Model{
     public string $created_at;
     public string $updated_at;
 
+    public ?string $business_name = null;
+    public ?string $business_address = null;
+    public ?string $business_phone = null;
+    public ?string $business_email = null;
     public ?string $bank_account_name = null;
     public ?string $bank_account_number = null;
     public ?string $bank_name = null;
-    public bool $has_bank_details = false;
+    public bool $has_business_details = false;
 
     function findByEmail(string $email): ?object {
         $sql = "SELECT * FROM {$this->tableName} WHERE email = :email";

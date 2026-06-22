@@ -8,6 +8,7 @@ Utils::requireAuth();
 /** @var array $invoice */
 /** @var array $items */
 
+
 // Status badge helper
 $statusMap = [
     'paid'    => ['label' => 'Paid',    'class' => 'badge-paid'],
@@ -228,6 +229,8 @@ tbody tr:hover{background:#f8fafc;}
      <div class="breadcrumb">
     <a href="<?php echo Config::get('baseProjectFolder'); ?>/dashboard">Dashboard</a>
     <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+    <a href="<?php echo Config::get('baseProjectFolder'); ?>/dashboard?section=invoices">Invoices</a>
+    <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
     <span><?php echo htmlspecialchars($invoice['invoice_number']); ?></span>
     </div>
 </div>
@@ -241,10 +244,14 @@ tbody tr:hover{background:#f8fafc;}
       <div class="page-sub">Viewing invoice details — read only.</div>
     </div>
     <div class="page-header-right">
-      <button class="btn-outline" onclick="window.print()">
+      <!-- <button class="btn-outline" onclick="window.print()">
         <svg class="btn-icon" viewBox="0 0 24 24"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
         Print / PDF
-      </button>
+      </button> -->
+      <a class="btn-outline" href="<?php echo Config::get('baseProjectFolder'); ?>/invoice/pdf/<?php echo $invoice['id']; ?>" >
+          <svg class="btn-icon" viewBox="0 0 24 24"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+          Print / PDF
+      </a>
       <!-- TODO: Replace hardcoded id with $invoice['id'] -->
       <a class="btn-primary" href="<?php echo Config::get('baseProjectFolder'); ?>/invoice/edit/<?php echo $invoice['id']; ?>">
         <svg class="btn-icon" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
@@ -264,7 +271,7 @@ tbody tr:hover{background:#f8fafc;}
         </div>
         <div>
           <div class="invoice-brand-name">InvoiceManager</div>
-          <div class="invoice-brand-sub">invoicemanager.com</div>
+          <div class="invoice-brand-sub"><?php echo $_SERVER['HTTP_HOST']; ?></div>
         </div>
       </div>
       <div class="invoice-meta">
@@ -277,7 +284,7 @@ tbody tr:hover{background:#f8fafc;}
     <hr class="divider">
 
     <!-- From / To / Payment info -->
-    <div class="party-grid">
+    <!-- <div class="party-grid">
       <div class="party-block">
         <p class="party-label">From</p>
         <p class="party-name"><?php echo htmlspecialchars($_SESSION['user']['firstname'] . ' ' . $_SESSION['user']['lastname']); ?></p>
@@ -294,7 +301,44 @@ tbody tr:hover{background:#f8fafc;}
       <p>Send payments to:</p>
       <p class="account-number">0284413444</p>
       <p>WEMA BANK &mdash; Oretade Olaoluwakitan</p>
+    </div> -->
+    <div class="party-grid">
+      <div class="party-block">
+        <p class="party-label">From</p>
+        <?php if(!empty($_SESSION['user']['business_name'])): ?>
+            <p class="party-name"><?php echo ucwords(htmlspecialchars((string)$_SESSION['user']['business_name'])); ?></p>
+        <?php else: ?>
+            <p class="party-name"><?php echo htmlspecialchars($_SESSION['user']['firstname'] . ' ' . $_SESSION['user']['lastname']); ?></p>
+        <?php endif; ?>
+
+        <?php if(!empty($_SESSION['user']['business_email'])): ?>
+            <p class="party-detail"><?php echo htmlspecialchars((string)$_SESSION['user']['business_email']); ?></p>
+        <?php else: ?>
+            <p class="party-detail"><?php echo htmlspecialchars($_SESSION['user']['email']); ?></p>
+        <?php endif; ?>
+
+        <?php if(!empty($_SESSION['user']['business_phone'])): ?>
+            <p class="party-detail"><?php echo htmlspecialchars((string)$_SESSION['user']['business_phone']); ?></p>
+        <?php endif; ?>
+
+        <?php if(!empty($_SESSION['user']['business_address'])): ?>
+            <p class="party-detail"><?php echo ucwords(htmlspecialchars((string)$_SESSION['user']['business_address'])); ?></p>
+        <?php endif; ?>
+      </div>
+      <div class="party-block">
+        <p class="party-label">Bill To</p>
+        <p class="party-name"><?php echo htmlspecialchars($invoice['customer_name']); ?></p>
+        <p class="party-detail"><?php echo htmlspecialchars($invoice['customer_email']); ?></p>
+      </div>
     </div>
+
+    <?php if($_SESSION['user']['has_business_details'] ?? false): ?>
+    <div class="payment-box">
+      <p>Send payments to:</p>
+      <p class="account-number"><?php echo htmlspecialchars((string)($_SESSION['user']['bank_account_number'] ?? '')); ?></p>
+      <p><?php echo strtoupper(htmlspecialchars((string)($_SESSION['user']['bank_name'] ?? ''))); ?> &mdash; <?php echo ucwords(htmlspecialchars((string)($_SESSION['user']['bank_account_name'] ?? ''))); ?></p>
+    </div>
+    <?php endif; ?>
 
     <hr class="divider">
 

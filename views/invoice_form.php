@@ -400,7 +400,7 @@ td input:focus{border-color:var(--color-blue);box-shadow:0 0 0 3px var(--color-b
                       value="<?php echo Utils::old($old, 'business_name', ''); ?>"
                       placeholder="e.g. Acme Ltd"
                       class="<?php echo isset($errors['business_name']) ? 'error' : ''; ?>"
-                      oninput="saveBusinessToStorage()" required/>
+                      oninput="saveBusinessToStorage()"/>
                     <?php echo Utils::fieldError($errors,'public', null, 'business_name'); ?>
                 </div>
                 <div>
@@ -409,7 +409,7 @@ td input:focus{border-color:var(--color-blue);box-shadow:0 0 0 3px var(--color-b
                       value="<?php echo Utils::old($old, 'business_email', ''); ?>"
                       placeholder="e.g. info@acme.com"
                       class="<?php echo isset($errors['business_email']) ? 'error' : ''; ?>"
-                      oninput="saveBusinessToStorage()" required/>
+                      oninput="saveBusinessToStorage()" />
                     <?php echo Utils::fieldError($errors, 'public', null, 'business_email'); ?>
                 </div>
                 <div>
@@ -439,7 +439,7 @@ td input:focus{border-color:var(--color-blue);box-shadow:0 0 0 3px var(--color-b
                       value="<?php echo Utils::old($old, 'bank_account_number', ''); ?>"
                       placeholder="e.g. 0123456789"
                       class="<?php echo isset($errors['bank_account_number']) ? 'error' : ''; ?>"
-                      oninput="saveBusinessToStorage()" required/>
+                      oninput="saveBusinessToStorage()" />
                     <?php echo Utils::fieldError($errors, 'public', null, 'bank_account_number'); ?>
                 </div>
                 <div>
@@ -448,7 +448,7 @@ td input:focus{border-color:var(--color-blue);box-shadow:0 0 0 3px var(--color-b
                       value="<?php echo Utils::old($old, 'bank_account_name', ''); ?>"
                       placeholder="e.g. Acme Ltd"
                       class="<?php echo isset($errors['bank_account_name']) ? 'error' : ''; ?>"
-                      oninput="saveBusinessToStorage()" required/>
+                      oninput="saveBusinessToStorage()" />
                     <?php echo Utils::fieldError($errors, 'public', null, 'bank_account_name'); ?>
                 </div>
                 <div>
@@ -457,7 +457,7 @@ td input:focus{border-color:var(--color-blue);box-shadow:0 0 0 3px var(--color-b
                       value="<?php echo Utils::old($old, 'bank_name', ''); ?>"
                       placeholder="e.g. First Bank"
                       class="<?php echo isset($errors['bank_name']) ? 'error' : ''; ?>"
-                      oninput="saveBusinessToStorage()" required/>
+                      oninput="saveBusinessToStorage()" />
                     <?php echo Utils::fieldError($errors, 'public', null, 'bank_name'); ?>
                 </div>
               </div>
@@ -785,6 +785,17 @@ td input:focus{border-color:var(--color-blue);box-shadow:0 0 0 3px var(--color-b
     section.style.display = isHidden ? 'block' : 'none';
     btn.textContent = isHidden ? '− Hide business details' : '+ Add your business details';
     document.getElementById('h-business-visible').value = isHidden ? 'true' : 'false';
+        const requiredFields = [
+        'g-business-name',
+        'g-business-email',
+        'g-bank-account-number',
+        'g-bank-account-name',
+        'g-bank-name'
+    ];
+
+    requiredFields.forEach(id => {
+        document.getElementById(id).required = isHidden;
+    });
 }
 
 function saveBusinessToStorage() {
@@ -836,6 +847,12 @@ function saveBusinessToStorage() {
         document.getElementById('guest-business-section').style.display = 'block';
         document.getElementById('business-toggle').textContent = '− Hide business details';
         document.getElementById('h-business-visible').value = 'true';
+
+         ['g-business-name',
+          'g-business-email',
+          'g-bank-account-number',
+          'g-bank-account-name',
+          'g-bank-name'].forEach(id => document.getElementById(id).required = true);
     }
 })();
 

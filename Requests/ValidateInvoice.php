@@ -35,7 +35,7 @@ public static function validate(string $redirectTo = '/invoice'): array{
                     echo $source;
                     echo $business_section_visible;
 
-                    if($source === 'public' && $business_section_visible === 'true'){
+                    if($source === 'public'){
                             Validators::validateBusinessName($business_name, $errors, $source);
                             Validators::validateBusinessAddress($business_address, $errors, $source);
                             Validators::validateBusinessEmail($business_email, $errors, $source);

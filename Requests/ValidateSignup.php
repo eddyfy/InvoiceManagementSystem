@@ -8,7 +8,7 @@ class ValidateSignup{
     public static function validate(): array{
         $errors = [];
         // Validate input
-            unset($_SESSION['csrf_token']); // Unset the CSRF token from the session to prevent reuse
+
             $firstname = Utils::sanitizeInput(trim($_POST['firstname'] ?? ''));
             $lastname = Utils::sanitizeInput(trim($_POST['lastname'] ?? ''));
             $email = strtolower(trim($_POST['email'] ?? ''));

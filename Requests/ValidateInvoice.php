@@ -7,7 +7,7 @@ class ValidateInvoice{
 public static function validate(string $redirectTo = '/invoice'): array{
             $errors = []; 
             
-                    unset($_SESSION['csrf_token']); // Unset the CSRF token from the session to prevent reuse
+
                     
                     $user_id = $_POST['user_id'] ?? null;
                     $invoice_number = trim($_POST['invoice_number'] ?? '');

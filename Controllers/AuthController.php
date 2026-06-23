@@ -7,6 +7,7 @@ use App\Config;
 use App\Requests\ValidateLogin;
 use App\Requests\ValidateSignup;
 use App\RateLimiter;
+use App\Csrf;
 use RuntimeException;
 
 class AuthController{
@@ -42,6 +43,7 @@ class AuthController{
             exit();
         }else{
             session_regenerate_id(true);
+            Csrf::regenerate();
             $_SESSION['user'] = [
                 'id' => $user->id,
                 'firstname' => $user->firstname,

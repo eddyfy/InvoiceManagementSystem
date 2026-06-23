@@ -3,20 +3,27 @@ declare(strict_types=1);
 namespace App\Controllers;
 use App\Models\Invoice;
 use App\Utils;  
+use App\Config;
+use App\Csrf;
+
 
 class HomeController{
     public function index(): void {
+        // Csrf::token();
         unset($_SESSION['previous_page']);
         $logoutMessage = '';
         if (isset($_SESSION['message'])) {
             $logoutMessage = $_SESSION['message'];
             unset($_SESSION['message']);
         }
+        if(isset($_SESSION['user'])){
+            header('Location: ' . Config::get('baseProjectFolder') . '/dashboard');
+        }
         require './views/home.php'; 
     }
     public function dashboard(): void{
+
         Utils::requireAuth();
-        
         unset($_SESSION['previous_page']);
         $userId = $_SESSION['user']['id'];
         $invoiceModel = new Invoice();

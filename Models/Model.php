@@ -50,6 +50,36 @@ abstract class Model{
         return $object; // Return the hydrated object with properties set from the data array
     }
 
+    function update(int $id, array $data): object {
+        if (empty($data)) {
+            throw new RuntimeException("No data provided for update");
+        }
+
+        $columns = array_keys($data);
+        $setClause = implode(', ', array_map(fn($col) => "{$col} = :{$col}", $columns));
+
+        $sql = "UPDATE {$this->tableName} SET {$setClause} WHERE id = :__id";
+
+        try {
+            $stmt = $this->pdo->prepare($sql);
+            $stmt->execute([...$data, '__id' => $id]);
+        } catch (PDOException $e) {
+            if ($e->getCode() === '23000') {
+                throw new RuntimeException("duplicate");
+            }
+            throw new RuntimeException("Database error: " . $e->getMessage());
+        }
+
+        if ($stmt->rowCount() === 0) {
+            throw new RuntimeException("No record found with id {$id}");
+        }
+
+        $fetchStmt = $this->pdo->prepare("SELECT * FROM {$this->tableName} WHERE id = :id");
+        $fetchStmt->execute(['id' => $id]);
+        $row = $fetchStmt->fetch(PDO::FETCH_ASSOC);
+
+        return $this->hydrate($row);
+    }
 }
   
     

@@ -2,6 +2,7 @@
 declare(strict_types=1);
 use App\Config;
 use App\Utils;
+use App\Csrf;
 
 /** @var string $nextInvoiceNumber */
 /** @var array $errors */
@@ -44,6 +45,11 @@ use App\Utils;
 }
 
 html,body{min-height:100%;font-family:var(--font-sans);background:var(--color-bg);color:var(--color-text-primary);}
+
+input[type="checkbox"], input[type="radio"]{
+  width:auto;
+  height:auto;
+}
 
 /* ── TOP NAV ── */
 .topnav{
@@ -544,7 +550,7 @@ td input:focus{border-color:var(--color-blue);box-shadow:0 0 0 3px var(--color-b
     <textarea id="notes" name="notes" rows="3" placeholder="e.g. Thank you for your purchase!"><?php echo Utils::old($old, 'notes'); ?></textarea>
   </div>
 
-  <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>" />
+ <input type="hidden" name="csrf_token" value="<?php echo Csrf::token(); ?>"/>
   <input type="hidden" name="user_id" value="<?php echo $_SESSION['user']['id'] ?? ''; ?>" />
   <input type="hidden" name="subtotal" id="h-subtotal" value="0">
   <input type="hidden" name="tax_amount" id="h-tax-amt" value="0">
@@ -584,7 +590,7 @@ td input:focus{border-color:var(--color-blue);box-shadow:0 0 0 3px var(--color-b
     <p>Add your business details so they appear on your invoices. You can always update this later in your profile.</p>
     
     <form action="<?php echo Config::get('baseProjectFolder'); ?>/profile/business-details" method="POST">
-      <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>"/>
+      <input type="hidden" name="csrf_token" value="<?php echo Csrf::token(); ?>"/>
 
       <div class="form-grid" style="margin-bottom:0;">
         
@@ -649,8 +655,8 @@ td input:focus{border-color:var(--color-blue);box-shadow:0 0 0 3px var(--color-b
 
       <!-- Don't Show Again Checkbox -->
       <div style="margin: 16px 0;">
-        <label style="font-size:13px; color:#64748b; cursor:pointer; user-select:none;">
-          <input type="checkbox" id="dont-show-again" style="margin-right:8px;">
+        <label style="display:flex; align-items:center; gap:8px; font-size:13px; color:#64748b; cursor:pointer; user-select:none;">
+          <input type="checkbox" id="dont-show-again" style="width:auto; height:auto; margin:0; flex-shrink:0;">
           Don't show this again
         </label>
       </div>

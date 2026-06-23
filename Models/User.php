@@ -45,5 +45,7 @@ class User extends Model{
             throw new RuntimeException("Database error: " . $e->getMessage());
         }
     }
+
+ 
     
 }

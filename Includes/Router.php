@@ -2,6 +2,7 @@
 declare(strict_types=1);
 namespace App\Includes;
 use Closure;
+use App\Csrf;
 
 class Router{
     private $routes = []; //contains all the active routes iin the application key is path and value is the callback function
@@ -77,14 +78,14 @@ class Router{
         // if ($method === 'POST' && isset($_POST['_method'])) {
         //     $method = strtoupper($_POST['_method']);
         // }
-        if($method === 'POST'){
-            if(!isset($_POST['csrf_token'], $_SESSION['csrf_token']) && !hash_equals($_SESSION['csrf_token'], $_POST['csrf_tokem'])){ //middleware handling csrf validation
+         if ($method === 'POST') {
+            if (!Csrf::validate($_POST['csrf_token'] ?? null)) {
+                http_response_code(419);
                 echo "Invalid CSRF token...";
                 exit();
             }
-            unset($_SESSION['csrf_token']);
-            if(isset($_POST['_method'])){
-                    $method = strtoupper($_POST['_method']);
+            if (isset($_POST['_method'])) {
+                $method = strtoupper($_POST['_method']);
             }
         }
         // Match against registered routes for this method

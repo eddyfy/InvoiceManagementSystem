@@ -22,7 +22,7 @@ class Invoice extends Model{
     public string $created_at;
 
     
-    public function update(int $invoiceId, int $userId, array $data): bool {
+    public function updateInvoice(int $invoiceId, int $userId, array $data): bool {
         $stmt = $this->pdo->prepare("
             UPDATE invoices SET 
                 invoice_number = :invoice_number,

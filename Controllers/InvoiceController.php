@@ -163,7 +163,7 @@ class InvoiceController{
         $invoiceItemModel = new InvoiceItem();
         $invoiceModel->pdo->beginTransaction();
         try{
-            $invoiceModel->update($invoiceId, $_SESSION['user']['id'], [
+            $invoiceModel->updateInvoice($invoiceId, $_SESSION['user']['id'], [
                 'invoice_number' => $validated['invoice_number'],
                 'invoice_date' => $validated['invoice_date'],
                 'customer_name' => $validated['customer_name'],

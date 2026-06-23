@@ -25,21 +25,15 @@ class UserController{
         $userModel = new User();
         try {
             $userModel->pdo->beginTransaction();
-            $stmt = $userModel->pdo->prepare("UPDATE users SET firstname = :firstname, lastname = :lastname, email = :email WHERE id = :id");
-            $stmt->execute([
-                ':firstname' => $validated['firstname'],
-                ':lastname' => $validated['lastname'],
-                ':email' => $validated['email'],
-                ':id' => $validated['user_id']
+        
+            $updatedUser = $userModel->update($validated['user_id'], [
+                'firstname' => $validated['firstname'],
+                'lastname' => $validated['lastname'],
+                'email' => $validated['email']
             ]);
-
-            $_SESSION['user']['firstname'] = $validated['firstname'];
-            $_SESSION['user']['lastname'] = $validated['lastname'];
-            $_SESSION['user']['email'] = $validated['email'];
-            // $_SESSION['user']['bank_account_number'] = $validated['bank_account_number'];
-            // $_SESSION['user']['bank_account_name'] = $validated['bank_account_name'];
-            // $_SESSION['user']['bank_name'] = $validated['bank_name'];  
-            // $_SESSION['user']['has_bank_details'] = !empty($validated['bank_account_number']) && !empty($validated['bank_account_name']) && !empty($validated['bank_name']);
+            $_SESSION['user']['firstname'] = $updatedUser->firstname;
+            $_SESSION['user']['lastname'] = $updatedUser->lastname;
+            $_SESSION['user']['email'] = $updatedUser->email;
             $userModel->pdo->commit();
             $_SESSION['message'] = "Profile updated successfully.";
             header('Location: ' . Config::get('baseProjectFolder') . '/dashboard');
@@ -71,10 +65,8 @@ class UserController{
 
         try {
             $userModel->pdo->beginTransaction();
-            $stmt = $userModel->pdo->prepare("UPDATE users SET password = :password WHERE id = :id");
-            $stmt->execute([
-                ':password' => password_hash($validated['new_password'], PASSWORD_DEFAULT),
-                ':id' => $userId
+            $userModel->update($userId, [
+                'password' => password_hash($validated['new_password'], PASSWORD_DEFAULT)
             ]);
             $userModel->pdo->commit();
             $_SESSION['message'] = "Password changed successfully.";
@@ -113,25 +105,23 @@ class UserController{
         $validated = ValidateBusinessDetails::validate();
         try {
             $userModel->pdo->beginTransaction();
-            $stmt = $userModel->pdo->prepare("UPDATE users SET business_name = :business_name, business_address = :business_address, business_phone = :business_phone, business_email = :business_email, bank_account_number = :bank_account_number, bank_account_name = :bank_account_name, bank_name = :bank_name WHERE id = :id"); //
-            $stmt->execute([
-                ':business_name' => $validated['business_name'],
-                ':business_address' => $validated['business_address'],
-                ':business_phone' => $validated['business_phone'],
-                ':business_email' => $validated['business_email'],
-                ':bank_account_number' => $validated['bank_account_number'],
-                ':bank_account_name' => $validated['bank_account_name'],
-                ':bank_name' => $validated['bank_name'],
-                ':id' => $userId
+            $updatedUser = $userModel->update($userId, [
+                'business_name' => $validated['business_name'],
+                'business_address' => $validated['business_address'],
+                'business_phone' => $validated['business_phone'],
+                'business_email' => $validated['business_email'],
+                'bank_account_number' => $validated['bank_account_number'],
+                'bank_account_name' => $validated['bank_account_name'],
+                'bank_name' => $validated['bank_name'],
             ]);
-            $_SESSION['user']['bank_account_number'] = $validated['bank_account_number'];
-            $_SESSION['user']['bank_account_name'] = $validated['bank_account_name'];
-            $_SESSION['user']['bank_name'] = $validated['bank_name'];
-            $_SESSION['user']['business_name'] = $validated['business_name'];
-            $_SESSION['user']['business_address'] = $validated['business_address'];
-            $_SESSION['user']['business_email'] = $validated['business_email'];
-            $_SESSION['user']['business_phone'] = $validated['business_phone'];
-            $_SESSION['user']['has_business_details'] = true;
+            $_SESSION['user']['business_name'] = $updatedUser->business_name;
+            $_SESSION['user']['business_address'] = $updatedUser->business_address;
+            $_SESSION['user']['business_phone'] = $updatedUser->business_phone;
+            $_SESSION['user']['business_email'] = $updatedUser->business_email;
+            $_SESSION['user']['bank_account_name'] = $updatedUser->bank_account_name;
+            $_SESSION['user']['bank_account_number'] = $updatedUser->bank_account_number;
+            $_SESSION['user']['bank_name'] = $updatedUser->bank_name;
+            $_SESSION['user']['has_business_details'] = $updatedUser->has_business_details;
             $userModel->pdo->commit();
             $_SESSION['message'] = "Business details added successfully.";
             header('Location: ' . Config::get('baseProjectFolder') . '/dashboard');

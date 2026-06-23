@@ -1,6 +1,7 @@
 <?php
 
 use App\Config;
+use App\Csrf;
 /** @var array $errors */
 /** @var array $old */
 ?>
@@ -342,7 +343,7 @@ use App\Config;
             } 
           ?>
       </div>
-      <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>" />
+      <input type="hidden" name="csrf_token" value="<?php echo Csrf::token(); ?>" />
 
       <button type="submit" class="btn-primary">Create Account</button>
 

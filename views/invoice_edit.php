@@ -1,6 +1,7 @@
 <?php
 use App\Config;
 use App\Utils;
+use App\Csrf;
 Utils::requireAuth();
 
 /** @var array $invoice */
@@ -196,7 +197,7 @@ td input:focus{border-color:var(--color-blue);box-shadow:0 0 0 3px var(--color-b
 
   <!-- Spoofs PUT method the same way your delete does -->
   <input type="hidden" name="_method" value="PUT">
-  <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
+  <input type="hidden" name="csrf_token" value="<?php echo Csrf::token(); ?>"/>
   <input type="hidden" name="user_id"    value="<?php echo $_SESSION['user']['id'] ?? ''; ?>">
   <input type="hidden" name="subtotal"   id="h-subtotal"   value="<?php echo $invoice['subtotal']; ?>">
   <input type="hidden" name="tax_amount" id="h-tax-amt"    value="<?php echo $invoice['tax_amount']; ?>">
@@ -375,7 +376,7 @@ td input:focus{border-color:var(--color-blue);box-shadow:0 0 0 3px var(--color-b
       <!-- TODO: Replace hardcoded id with $invoice['id'] -->
       <form action="<?php echo Config::get('baseProjectFolder'); ?>/invoice/delete/<?php echo $invoice['id']; ?>" method="POST">
         <input type="hidden" name="_method" value="DELETE">
-        <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
+        <input type="hidden" name="csrf_token" value="<?php echo Csrf::token(); ?>"/>
         <button class="btn-danger" type="submit">Yes, delete</button>
       </form>
     </div>

@@ -13,6 +13,7 @@ use App\Controllers\HomeController;
 use App\Controllers\AuthController;
 use App\Controllers\InvoiceController;
 use App\Controllers\UserController;
+use App\Csrf;
 
 $path = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 

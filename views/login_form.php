@@ -1,6 +1,7 @@
 <?php
 declare(strict_types=1);
 use App\Config;
+use App\Csrf;
 /** @var array $errors */
 /** @var array $old */
 ?>
@@ -379,7 +380,7 @@ use App\Config;
       </label>
       <a href="#" class="forgot-link">Forgot password?</a>
     </div> -->
-    <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>" />
+    <input type="hidden" name="csrf_token" value="<?php echo Csrf::token(); ?>" />
     <button class="btn-primary" type="submit">Sign in</button>
 
     <div class="divider"><span>or</span></div>

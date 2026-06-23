@@ -910,7 +910,10 @@ async function deleteAccount() {
         localStorage.removeItem('invoiceManager_business'); // ← clear if already set up
         return;
     }
-
+    
+    if (window.opener) {
+        return;
+    }
     // Prefill from localStorage — runs regardless of which path shows the modal
     const saved = localStorage.getItem('invoiceManager_business');
     if (saved) {

@@ -7,8 +7,6 @@ class ValidateInvoice{
 public static function validate(string $redirectTo = '/invoice'): array{
             $errors = []; 
             
-
-                    
                     $user_id = $_POST['user_id'] ?? null;
                     $invoice_number = trim($_POST['invoice_number'] ?? '');
                     $invoice_date = trim($_POST['invoice_date'] ?? '');
@@ -28,12 +26,10 @@ public static function validate(string $redirectTo = '/invoice'): array{
                     $business_name = strtolower(trim($_POST['business_name'] ?? ''));
                     $business_address = trim($_POST['business_address'] ?? '');
                     $business_email = strtolower(trim($_POST['business_email'] ?? ''));
-                    $business_phone = trim($_POST['business_phone'] ?? '');
+                    $business_phone = trim($_POST['business_phone'] ?? ''); 
                     $bank_account_number = trim($_POST['bank_account_number'] ?? '');
                     $bank_account_name = trim($_POST['bank_account_name'] ?? '');
                     $bank_name = trim($_POST['bank_name'] ?? '');
-                    echo $source;
-                    echo $business_section_visible;
 
                     if($source === 'public'){
                             Validators::validateBusinessName($business_name, $errors, $source);
@@ -67,6 +63,8 @@ public static function validate(string $redirectTo = '/invoice'): array{
                         ]; // Store the old input values in the session to repopulate the form
                         //var_dump($errors); exit();
                         //var_dump($_SESSION); exit();
+                        // var_dump($_POST);
+                        // var_dump($errors);
                         header('Location: ' . Config::get('baseProjectFolder') . $redirectTo);  // Redirect back to the invoice form if there are validation errors
                         exit();
                     }

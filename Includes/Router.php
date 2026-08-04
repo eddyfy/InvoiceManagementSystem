@@ -34,50 +34,9 @@ class Router{
     ];
 }
 
-//     public function dispatch(string $path):void { //function to run the callback function associated with the given path called from index.php
-//         $method = $_SERVER['REQUEST_METHOD']; //get the HTTP method of the request
-
-//          // Check for method override
-//         if ($method === 'POST' && isset($_POST['_method'])) {
-//             $method = strtoupper($_POST['_method']);
-//         }
-
-//           // Check if the path exists under the current method
-//         if (isset($this->routes[$method][$path])) {
-//             $handler = $this->routes[$method][$path];
-//             call_user_func($handler); //call the callback function associated with the path
-//             return;
-//         }
-
-//         // If not found, check for regex patterns (for dynamic routes)
-//         if (isset($this->routes[$method])) {
-//             foreach ($this->routes[$method] as $pattern => $handler) {
-//                 if (preg_match($pattern, $path, $matches)) {
-//                     $params = array_filter($matches, fn($k) => !is_int($k), ARRAY_FILTER_USE_KEY);
-//                     call_user_func($handler, $params);
-//                     return;
-//                 }
-//             }
-//         }
-
-//         // Path exists but not for this method
-//         if (isset($this->routes[$method === 'GET' ? 'POST' : 'GET'][$path])) {
-//             http_response_code(405);
-//             echo '405 Method Not Allowed';
-//             return;
-//         }
-        
-//         // Path does not exist at all
-//         http_response_code(404);
-//         echo '404 Not Found';
-//     }
-// }
     public function dispatch(string $path): void {
         $method = $_SERVER['REQUEST_METHOD'];
 
-        // if ($method === 'POST' && isset($_POST['_method'])) {
-        //     $method = strtoupper($_POST['_method']);
-        // }
          if ($method === 'POST') {
             if (!Csrf::validate($_POST['csrf_token'] ?? null)) {
                 http_response_code(419);
@@ -88,6 +47,7 @@ class Router{
                 $method = strtoupper($_POST['_method']);
             }
         }
+        
         // Match against registered routes for this method
         if (isset($this->routes[$method])) {
             foreach ($this->routes[$method] as $route) {

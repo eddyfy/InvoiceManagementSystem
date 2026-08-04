@@ -155,7 +155,6 @@ class InvoiceController{
     }
 
     public function updateInvoice(array $params):void{
-        
         $invoiceId = (int) ($params['id']);
         $validated = ValidateInvoice::validate("/invoice/edit/{$invoiceId}"); // Validate the invoice data and redirect back to the edit form if there are validation errors
         $status = $_POST['status'] ?? 'draft';

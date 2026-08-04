@@ -202,6 +202,15 @@ td input:focus{border-color:var(--color-blue);box-shadow:0 0 0 3px var(--color-b
   <input type="hidden" name="subtotal"   id="h-subtotal"   value="<?php echo $invoice['subtotal']; ?>">
   <input type="hidden" name="tax_amount" id="h-tax-amt"    value="<?php echo $invoice['tax_amount']; ?>">
   <input type="hidden" name="grand_total" id="h-grand-total" value="<?php echo $invoice['grand_total']; ?>">
+  <input type="hidden" name="source" value="dashboard">
+  <input type="hidden" name="business_name" value="<?php echo htmlspecialchars($_SESSION['user']['business_name'] ?? ''); ?>">
+  <input type="hidden" name="business_address" value="<?php echo htmlspecialchars($_SESSION['user']['business_address'] ?? ''); ?>">
+  <input type="hidden" name="business_email" value="<?php echo htmlspecialchars($_SESSION['user']['business_email'] ?? ''); ?>">
+  <input type="hidden" name="business_phone" value="<?php echo htmlspecialchars($_SESSION['user']['business_phone'] ?? ''); ?>">
+  <input type="hidden" name="bank_account_number" value="<?php echo htmlspecialchars($_SESSION['user']['bank_account_number'] ?? ''); ?>">
+  <input type="hidden" name="bank_account_name" value="<?php echo htmlspecialchars($_SESSION['user']['bank_account_name'] ?? ''); ?>">
+  <input type="hidden" name="bank_name" value="<?php echo htmlspecialchars($_SESSION['user']['bank_name'] ?? ''); ?>">
+
 
   <div class="page-header">
     <div class="page-header-left">
